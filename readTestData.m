@@ -28,6 +28,7 @@ function [structured_data, stocks_data_matrix, index_data_matrix, common_dates] 
       fileName = [stock_name, '_data.csv'];
       fileID = fopen(fileName);
       C = textscan(fileID,'%d %s %s %f32 %f32 %f32 %f32 %d %f','HeaderLines',1,'Delimiter',',');
+      fclose(fileID);
       dates = C{1}; close = C{7};
       stockdata = struct('dates', dates, 'close',close);
       struct_data = setfield(struct_data, stock_name, stockdata);
