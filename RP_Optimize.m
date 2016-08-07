@@ -15,7 +15,6 @@ function [ w_t ] = RP_Optimize(t, return_data, params)
       portfolio_volatility = sqrt(sum(diag(sigma))); % sqrt( net_weights' * sigma * net_weights );
       
       scaled_weights = params.target_volatility / portfolio_volatility * net_weights;
-      sum(scaled_weights)
       w_t = net_weights;
   end
       

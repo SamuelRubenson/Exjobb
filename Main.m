@@ -15,13 +15,13 @@ return_data(abs(return_data) > 0.3) = 0; % Remove stock splits
 % step = 40;
 % risk_level = [5000000];
 
-MV_config = {'start', 40, 'step', 20, 'risk_level', [50000000], 'lookBack_mu', 20, 'lookBack_sigma', 40, 'option', 'LongShort'};
-MV_params = struct(MV_config{:});
+MV_config = {'start', 252, 'step', 2, 'risk_level', [50000000], 'lookBack_mu', 20, 'lookBack_sigma', 40, 'option', 'LongShort'};
+MV = {'MV', struct(MV_config{:}) };
 
-RP_config = {'start', 252, 'step', 20, 'lookBack_sigma', 252, 'lookBack_returns', 252, 'target_volatility', 0.01, 'option', 'VP-TF'};  
-RP_params = struct(RP_config{:});
+RP_config = {'start', 252, 'step', 2, 'lookBack_sigma', 252, 'lookBack_returns', 252, 'target_volatility', 0.01, 'option', 'VP-TF'};  
+RP = {'RP', struct(RP_config{:}) };
 
-outCome = evaluatePerformance(return_data, 'RP', RP_params);
+outCome = evaluatePerformance(return_data, MV{:}, RP{:});
 
 
 

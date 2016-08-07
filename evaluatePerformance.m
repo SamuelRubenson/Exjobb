@@ -80,7 +80,7 @@ end
       end
       
       return_at_t_plus_one = sum( w_t .* prod(return_data(t+1:t+step,:)+1 ,1)' );
-      portfolio_returns = [portfolio_returns; return_at_t_plus_one]
+      portfolio_returns = [portfolio_returns; return_at_t_plus_one];
       weights = [weights; w_t(:)'];
     end
     capital = cumprod(portfolio_returns);
