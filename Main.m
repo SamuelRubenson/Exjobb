@@ -15,21 +15,26 @@ return_data(abs(return_data) > 0.3) = 0; % Remove stock splits
 % step = 40;
 % risk_level = [5000000];
 
-MV_keys =     {'start', 'step', 'risk_level', 'lookBack_mu', 'lookBack_sigma', 'option'};
-MV_values =    { 30,       2,      [50000000],         20,             40,  'LongShort' };
-MV_params = containers.Map(MV_keys, MV_values);
+MV_config = {'start', 40, 'step', 20, 'risk_level', [50000000], 'lookBack_mu', 20, 'lookBack_sigma', 40, 'option', 'LongShort'};
+MV_params = struct(MV_config{:});
 
-outCome = evaluatePerformance(return_data, 'MV', MV_params);
+RP_config = {'start', 252, 'step', 20, 'lookBack_sigma', 252, 'lookBack_returns', 252, 'target_volatility', 0.01, 'option', 'VP-TF'};  
+RP_params = struct(RP_config{:});
+
+outCome = evaluatePerformance(return_data, 'RP', RP_params);
+
+
+
+models = fieldnames(outCome);
 
 figure(2),clf
 hold on
+for iModel = 1:length(models); plot(outCome.(models{iModel}).capital); end
 %yyaxis left
-plot(outCome.MV.capital)
+
 %yyaxis right
-index_data_to_show = index_matrix_data(outCome.MV.times);
+index_data_to_show = index_matrix_data(outCome.(models{1}).times);
 plot(index_data_to_show/index_data_to_show(1), '--', 'LineWidth',2)
 
-legend('k = 0.5', 'k=2', 'k=5', 'Index')
-%%
-figure(3), clf
-plot(squeeze(store_weights(:,:,1)))
+legend(models, 'Index')
+
