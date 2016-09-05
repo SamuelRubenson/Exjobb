@@ -53,7 +53,7 @@ function [corrMatEst] = estCorrMat(dZ, tau, Filter)
     C_norm = nan(size(C));
     for it = 2:T
       variances = repmat(diag(C(:,:,it)),1,N);
-      norm_mat = sqrt(variances*variances');
+      norm_mat = sqrt(variances'.*variances);
       C_norm(:,:,it) = C(:,:,it)./norm_mat;
     end
   end
