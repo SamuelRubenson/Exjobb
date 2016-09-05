@@ -3,15 +3,13 @@ function [MVpos] = getMVpos( signals, corrMat, params )
   [T,N] = size(signals);
   
   MVpos = zeros(T,N);
-  tmp = 0;
   for t = 1:T
     Q = (corrMat(:,:,t) + corrMat(:,:,t)')/2; %sym
     activeI = logical(any(Q).*(~isnan(signals(t,:))));
     if ~any(activeI), continue; end 
     [~,PSDflag] = chol(Q(activeI, activeI)); 
     if PSDflag > 0  % will be > 0 if Q is not PSD
-      tmp = tmp+1
-      disp(t)
+      disp('Non PSD cov-matrix')
       [H,D] = eig(Q(activeI, activeI)); D(D<0) = 0; 
       Q(activeI, activeI) = H*D*H'; 
     end

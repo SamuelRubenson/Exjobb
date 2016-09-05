@@ -1,5 +1,5 @@
 x = [1; zeros(1000,1)];
-a = 1-1/120;
+a = 1-1/100;
 y1 = filter(1-a,[1, -a],x);
 y2 = filter(1-a,[1, -a],filter(1-a,[1, -a],x));
 plot([y1 y2 (y1 + y2)/2])

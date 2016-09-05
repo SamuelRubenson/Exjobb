@@ -4,7 +4,7 @@
 % dates = datetime(Date,'ConvertFrom','datenum');
 % save('160830', 'Date', 'Open', 'High', 'Low', 'Close')
 %%
-addpath(genpath('C:\Users\samuel.rubenson\Documents\Exjobb'))
+addpath(genpath('H:\Exjobb'))
 clc, clear, close all
 load ContractsToLoad names
 load 160830

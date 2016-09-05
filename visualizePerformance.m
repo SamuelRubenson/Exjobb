@@ -15,9 +15,9 @@ for iModel = 1:length(models);
 end
 figure(1), title('Equity curve'), legend(models)
 figure(2), hold on, title('Drawdown'), boxplot(drawdowns, 'Labels', models, 'Notch', 'on')
+figure(3), hold on, title('Drawdown'), plot(dates, drawdowns), legend(models)
 
-
-figure(3), clf, hold on
+figure(4), clf, hold on
 bar(sharpe_ratios)
 set(gca,'xtick', 1:length(models),'xticklabel', models)
 ylabel('Sharpe Ratio')
