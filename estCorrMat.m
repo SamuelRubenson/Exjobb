@@ -2,7 +2,7 @@ function [corrMatEst] = estCorrMat(dZ, tau, Filter)
   
   if ~exist('tau', 'var') || isempty(tau), tau = 100; end
   if ~exist('Filter', 'var') || isempty(Filter), Filter = 'EMA'; end
-  burnIn = 500;
+  burnIn = floor(tau*log(4));
   
   [T, N] = size(dZ);
   a = 1 - 1/tau;
@@ -42,7 +42,7 @@ function [corrMatEst] = estCorrMat(dZ, tau, Filter)
       idx_new = isnan(Y_t);
       idx_prev = isnan(rolling_est(:,:,it-1));
       only_new = logical((~idx_new).*idx_prev); 
-      C_t(only_new) = Y_t(only_new);
+      C_t(only_new) = (1-a)*Y_t(only_new);
 
       rolling_est(:,:,it) = C_t;
     end
@@ -50,7 +50,7 @@ function [corrMatEst] = estCorrMat(dZ, tau, Filter)
     
 
   function [C_norm] = normalize(C)
-    C_norm = zeros(size(C));
+    C_norm = nan(size(C));
     for it = 2:T
       variances = repmat(diag(C(:,:,it)),1,N);
       norm_mat = sqrt(variances*variances');
@@ -60,7 +60,7 @@ function [corrMatEst] = estCorrMat(dZ, tau, Filter)
 
 
   function [covariance] = removeBurnInPeriod(covariance)
-    start_index = arrayfun(@(k) find(~isnan(dZ(:,k)),1,'first'),1:N);
+    start_index = arrayfun(@(k) find(~isnan(covariance(k,k,:)),1,'first'),1:N);
     for iN = 1:N
       %variance(start_index(iN):start_index(iN)+burnIn-1,iN) = nan(burnIn,1);
       for it = start_index(iN):start_index(iN)+burnIn-1
