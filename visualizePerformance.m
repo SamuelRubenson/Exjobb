@@ -1,5 +1,5 @@
 function [] = visualizePerformance( outCome, dates )
-
+for i = 1:4, figure(i), clf; end
 models = fieldnames(outCome);
 sharpe_ratios = zeros(length(models), 1);
 
