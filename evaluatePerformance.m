@@ -58,7 +58,7 @@ end
     pos=lvcf(emaShort-emaLong);
     
     [sharpe, equityCurve] = getPerformance(pos, params);
-    output.TF = struct('sharpe', sharpe, 'equityCurve', equityCurve);
+    output.TF = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos);
   end
 
 %---------------------------------------------------------------------------
@@ -67,16 +67,16 @@ end
     disp('Processing MV-model...')
     pos = getMVpos(TF_pos, corrMat, params);
     [sharpe, equityCurve] = getPerformance(pos, params);
-    output.MV = struct('sharpe', sharpe, 'equityCurve', equityCurve);
+    output.MV = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos);
   end
 
 %--------------------------------------------------------------------------
 
   function [] = runRP(params)
     disp('Processing RP-model...')
-    pos = getRPpos(TF_pos, corrMat, params);
+    pos = getRPpos(TF_pos, corrMat, params.target_volatility);
     [sharpe, equityCurve] = getPerformance(pos, params);
-    output.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve);
+    output.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos);
   end
 %--------------------------------------------------------------------------
 
