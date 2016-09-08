@@ -6,7 +6,7 @@
 %%
 addpath(genpath('H:\Exjobb'))
 clc, clear
-load ContractsToLoad names
+load contractsToLoad names
 load 160830
 dates = datetime(Date,'ConvertFrom','datenum');
 
@@ -18,7 +18,7 @@ TF = {'TF_ema', TF_ema_Params};
 MV_Params = struct('lambda', 0.5);
 MV = {'MV', MV_Params};
 
-RP_Params = struct('target_volatility', 8);
+RP_Params = struct('target_volatility', 10);
 RP = {'RP', RP_Params};
 
 outCome = evaluatePerformance(Open, High, Low, Close, Config, TF{:}, MV{:}, RP{:});
@@ -26,3 +26,6 @@ outCome = evaluatePerformance(Open, High, Low, Close, Config, TF{:}, MV{:}, RP{:
 visualizePerformance(outCome, dates);
 
 
+%%
+% outCome = changeCost(outCome, 0, Open, Close);
+% visualizePerformance(outCome, dates);
