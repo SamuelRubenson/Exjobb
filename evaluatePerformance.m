@@ -17,9 +17,11 @@ addParameter(p,'LES', default)
 parse(p,Open, High, Low, Close, Config, varargin{:});
 
 [T, nMarkets] = size(Close);
-output = struct;
+output = struct('General', struct, 'Models',struct);
 
 [dZ, sigma_t, corrMat] = initialize();
+
+output.General = struct('std', sigma_t, 'corr', corrMat);
 
 if isa(p.Results.TF_ema, 'struct')
   TF_pos = runTF_ema(p.Results.TF_ema);
@@ -57,8 +59,8 @@ end
     emaShort = Ema(normClose,1/params.aShort);
     pos=lvcf(emaShort-emaLong);
     
-    [sharpe, equityCurve] = getPerformance(pos, params);
-    output.TF = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos);
+    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t);
+    output.Models.TF = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
 
 %---------------------------------------------------------------------------
@@ -66,8 +68,8 @@ end
   function [] = runMV(params)
     disp('Processing MV-model...')
     pos = getMVpos(TF_pos, corrMat, params);
-    [sharpe, equityCurve] = getPerformance(pos, params);
-    output.MV = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos);
+    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t);
+    output.Models.MV = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
 
 %--------------------------------------------------------------------------
@@ -75,23 +77,10 @@ end
   function [] = runRP(params)
     disp('Processing RP-model...')
     pos = getRPpos(TF_pos, corrMat, params.target_volatility);
-    [sharpe, equityCurve] = getPerformance(pos, params);
-    output.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos);
+    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t);
+    output.Models.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
 %--------------------------------------------------------------------------
-
-
-
-  function [sharpe, equityCurve] = getPerformance(pos, params)
-    pos=[nan(1,nMarkets) ; pos(1:end-1,:)];
-    [~, TRAD, REV] = pos2rev( Open, Close, pos, 'L', Open);
-    ret=NansumNan(REV./sigma_t-Config.cost*TRAD,2);
-    
-    sharpe=nanmean(ret)/nanstd(ret)*sqrt(252);
-    equityCurve=CumsumNan(ret./nanstd(ret)/sqrt(252)); %% ?
-  end
-
-
 
 end
 
