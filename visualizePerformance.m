@@ -1,4 +1,4 @@
-function [] = visualizePerformance( outCome, dates )
+function [] = visualizePerformance( outCome, dates, assetClasses )
 for i = 1:4, figure(i), clf; end
 models = fieldnames(outCome.Models);
 sharpe_ratios = zeros(length(models), 1);
@@ -22,6 +22,23 @@ bar(sharpe_ratios)
 set(gca,'xtick', 1:length(models),'xticklabel', models)
 ylabel('Sharpe Ratio')
 
+figure(5), clf, title('Weight distribution')
+for iModel=1:length(models)
+  model_pos = outCome.Models.(models{iModel}).pos;
+  [data,groups] = grpstats(abs(model_pos'),assetClasses',{'sum', 'gname'});
+  subplot(2,2,iModel), title(models{iModel}),hold on
+  boxplot(abs(data')./repmat(sum(abs(data'),2),1,length(groups)),groups)
+  ylim([0,1])
+  %boxplot(model_pos./repmat(sum(abs(model_pos),2),1,size(model_pos,2)),assetClasses)
+end
+
+
+
+
+%   function [] = weightPerClass(model)
+%     pos = outCome.Models.(model).pos;
+%     
+    
 
 end
 

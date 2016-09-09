@@ -1,5 +1,5 @@
 % load ContractsToLoad names
-% dbc=DBClient('DllPath', 'H:\DBClient');
+%dbc=DBClient('DllPath', 'H:\DBClient');
 % [Date, Open, High, Low, Close] = dbc.GetDailyBars(names);
 % dates = datetime(Date,'ConvertFrom','datenum');
 % save('160830', 'Date', 'Open', 'High', 'Low', 'Close')
@@ -7,6 +7,7 @@
 addpath(genpath('H:\Exjobb'))
 clc, clear
 load contractsToLoad names
+load assetClasses
 load 160830
 dates = datetime(Date,'ConvertFrom','datenum');
 
@@ -23,9 +24,9 @@ RP = {'RP', RP_Params};
 
 outCome = evaluatePerformance(Open, High, Low, Close, Config, TF{:}, MV{:}, RP{:});
 
-visualizePerformance(outCome, dates);
+visualizePerformance(outCome, dates, assetClasses);
 
 
 %%
 % outCome = changeCost(outCome, 0, Open, Close);
-% visualizePerformance(outCome, dates);
+% visualizePerformance(outCome, dates, assetClasses);
