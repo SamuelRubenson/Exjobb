@@ -1,8 +1,8 @@
 function [ RPpos ] = getRPpos(signals, corrMat, target_volatility)
 
   [T,N] = size(signals);
- 
   RPpos = nan(T,N);
+  options = optimoptions('fmincon', 'GradObj','on', 'Display','off');
   
   for t = 2:T
     if mod(t,1000)==0, fprintf('Processing RP-model...(%d/%d)\n',t,T); end
@@ -14,28 +14,28 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility)
     adjusted_corrMat = adjustForSigns(Q(activeI,activeI),signal_signs);
     %w0 = 0.99*target_volatility/sqrt(sum(sum(adjusted_corrMat)))*ones(length(signal_signs),1);
     n = length(signal_signs);
-    w0 = abs(signal_signs);% 0.99*target_volatility/sqrt(sum(sum(adjusted_corrMat)))*signal_signs; 
+    w0 = abs(signal_signs);    
     
-    options = optimoptions('fmincon', 'GradObj','on', 'Display','off');
-    [w_t,~,exitflag] = fmincon(@(w)objective(w,adjusted_corrMat,n),w0,[],[],[],[],zeros(n,1),[],[],options);
-
+    %[w_t,~,exitflag] = fmincon(@(w)objective(w,adjusted_corrMat,n),w0,[],[],[],[],zeros(n,1),[],[],options);
+    
 %     warning('off', 'optim:fminunc:SwitchingMethod'); 
 %     [w_t,~,exitflag] = fminunc(@(w)-sum(log(w)) + n/target_volatility^2*(w'*adjusted_corrMat*w - target_volatility^2),...
 %       w0,optimset('Display','off'));
     % [w_t,~,exitflag] = fsolve(@(w)F(w,Q(activeI,activeI),n),signal_signs,optimset('Display','off')); 
     
     %w_t = RP_newton(w0,adjusted_corrMat,target_volatility);
-    
+    w_t = rpADMM(w0, adjusted_corrMat, n/target_volatility^2/2);
     
     %if any(sign(w_t)~=sign(w0)), disp('signChange'); end
-    if exitflag<1, disp('fail'); disp(exitflag); end
+    %if exitflag<1, disp('fail'); disp(exitflag); end
+    if abs(w_t(:)'*adjusted_corrMat*w_t(:)-target_volatility^2)>0.01, disp([w_t(:)'*adjusted_corrMat*w_t(:), target_volatility^2]); end
     RPpos(t,activeI) = w_t(:).*signal_signs;
   end
   
   
   function [f,g] = objective(w,Q,n)
-    f = -sum(log(w)) + n/target_volatility^2*(w'*Q*w);
-    g = -1./w + 2*n/target_volatility^2*(Q*w);
+    f = -sum(log(w)) + n/target_volatility^2/2*(w'*Q*w);
+    g = -1./w + n/target_volatility^2*(Q*w);
   end
 
   function [c, ceq] = constraint(w, sigma)
