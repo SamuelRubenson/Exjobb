@@ -10,26 +10,29 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility)
     activeI = logical(any(Q).*(~isnan(signals(t,:))));
     if ~any(activeI), continue; end
     
-    signal_signs = sign(signals(t,activeI)');
-    adjusted_corrMat = adjustForSigns(Q(activeI,activeI),signal_signs);
-    %w0 = 0.99*target_volatility/sqrt(sum(sum(adjusted_corrMat)))*ones(length(signal_signs),1);
-    n = length(signal_signs);
-    w0 = abs(signal_signs);    
+    signal = signals(t,activeI)';
+    norm_signal = signal/max(abs(signal));
+    %signal_signs = sign(signal);
+    n = length(signal);
     
-    %[w_t,~,exitflag] = fmincon(@(w)objective(w,adjusted_corrMat,n),w0,[],[],[],[],zeros(n,1),[],[],options);
-    
-%     warning('off', 'optim:fminunc:SwitchingMethod'); 
-%     [w_t,~,exitflag] = fminunc(@(w)-sum(log(w)) + n/target_volatility^2*(w'*adjusted_corrMat*w - target_volatility^2),...
-%       w0,optimset('Display','off'));
-    % [w_t,~,exitflag] = fsolve(@(w)F(w,Q(activeI,activeI),n),signal_signs,optimset('Display','off')); 
-    
+    W = []; factor = [];
+    for lambda = [1000000 100 10 2 0.5]
+      mod_signal = ((Q(activeI,activeI) + lambda*eye(n))/(lambda+1))\signal;
+      mod_signal(mod_signal==0) = 1;
+      adjusted_corrMat = adjustForSigns(Q(activeI,activeI),sign(mod_signal(:)));
+
+      w0 = ones(n,1);% 0.99*target_volatility/sqrt(sum(sum(adjusted_corrMat)))*signal_signs; 
+      [w_t,~,exitflag] = fmincon(@(w)objective(w,adjusted_corrMat,n),w0,[],[],[],[],zeros(n,1),[],[],options);
+      scaled_signed_wt = (w_t(:)'/max(abs(w_t))).*(sign(mod_signal(:)'));
+      W = [W; scaled_signed_wt]; factor = [factor; max(abs(w_t))];
+      if exitflag<1, disp('fail'); disp(exitflag); end
+    end
     %w_t = RP_newton(w0,adjusted_corrMat,target_volatility);
-    w_t = rpADMM(w0, adjusted_corrMat, n/target_volatility^2/2);
-    
-    %if any(sign(w_t)~=sign(w0)), disp('signChange'); end
-    %if exitflag<1, disp('fail'); disp(exitflag); end
-    if abs(w_t(:)'*adjusted_corrMat*w_t(:)-target_volatility^2)>0.01, disp([w_t(:)'*adjusted_corrMat*w_t(:), target_volatility^2]); end
-    RPpos(t,activeI) = w_t(:).*signal_signs;
+    dists = pdist2(W,norm_signal(:)');%@(x1,x2)exp(-pdist2(x1,x2)/0.5));
+    [~,closest] = min(dists);
+    w_best = W(closest,:); mult = factor(closest);
+    RPpos(t,activeI) = w_best*mult;
+    disp([t, closest])
   end
   
   
@@ -52,5 +55,6 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility)
     signs = tmp.*tmp';
     C_adj = C.*signs;
   end
+
 
 end
