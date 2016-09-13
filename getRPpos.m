@@ -15,7 +15,7 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility)
     
     W = []; factor = []; 
     for lambda = [1000000 100 10 2]
-      mod_signal = signal;%((Q(activeI,activeI) + lambda*eye(n))/(lambda+1))\signal;
+      mod_signal = ((Q(activeI,activeI) + lambda*eye(n))/(lambda+1))\signal;
       norm_mod_signal = mod_signal/max(abs(mod_signal));
       adjusted_corrMat = adjustForSigns(Q(activeI,activeI),sign(mod_signal(:)));
 
