@@ -1,4 +1,4 @@
-function [htime_sign, htime] = holdingTime( pos )
+function [htime, htime_sign] = holdingTime( pos )
 
 [T,N] = size(pos);
 side = sign(pos);
