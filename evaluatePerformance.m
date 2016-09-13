@@ -43,7 +43,7 @@ end
     yzv=yangzhang(cat(3,Open,High,Low,Close), Config.yz_tau);
     yz = sqrt(yzv([1 1:end-1],:));
     dZ = [nan(1,nMarkets) ; diff(lvcf(Close))]./yz;
-    corrMat_t = estCorrMat(dZ, Config.cov_tau, Config.cov_filter); %has paramters
+    corrMat_t = estCorrMat(dZ, Config.cov_tau, Config.cov_filter);
     corrMat_tm1 = cat(3, corrMat_t(:,:,1), corrMat_t(:,:,1:end-1));
   end
   

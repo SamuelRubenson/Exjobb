@@ -13,8 +13,8 @@ function [MVpos] = getMVpos( signals, corrMat, params )
       [H,D] = eig(Q(activeI, activeI)); D(D<0) = 0; 
       Q(activeI, activeI) = H*D*H'; 
     end
-    Q(activeI, activeI) = addToDiag(Q(activeI, activeI), params.lambda);
-    MVpos(t,:) = getMVpos_t(Q, activeI, signals(t,:));
+    Q = addToDiag(Q(activeI, activeI), params.lambda);
+    MVpos(t,activeI) = Q\(signals(t,activeI)');
   end
   
   
