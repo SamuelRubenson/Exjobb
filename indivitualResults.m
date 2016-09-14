@@ -1,7 +1,12 @@
-  function [sharpe, equityCurve, htime] = indivitualResults(pos, cost, Open, Close, sigma_t)
+  function [sharpe, equityCurve, htime] = indivitualResults(pos, cost, Open, Close, sigma_t, riskAdjust)
+    if ~exist('riskAdjust','var'), riskAdjust = false; end
+    
     nMarkets = size(pos,2);
     htime = holdingTime(pos);
     pos=[nan(1,nMarkets) ; pos(1:end-1,:)];
+    if riskAdjust
+      pos = pos./repmat(NansumNan(abs(pos),2),1,nMarkets);
+    end
     [~, TRAD, REV] = pos2rev( Open, Close, pos, 'L', Open);
     ret=NansumNan(REV./sigma_t-cost*TRAD,2);
     

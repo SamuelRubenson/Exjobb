@@ -57,9 +57,10 @@ end
     normClose = CumsumNan(dZ);
     emaLong = Ema(normClose,1/params.aLong);
     emaShort = Ema(normClose,1/params.aShort);
-    pos=lvcf(emaShort-emaLong);
+    pos=lvcf(emaShort-emaLong); 
+    %pos = pos./repmat(max(abs(pos),[],2),1,nMarkets); %adjust to be in sigma-range?
     
-    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t);
+    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.TF = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
 
@@ -68,7 +69,7 @@ end
   function [] = runMV(params)
     disp('Processing MV-model...')
     pos = getMVpos(TF_pos, corrMat, params);
-    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t);
+    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.MV = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
 
@@ -77,7 +78,7 @@ end
   function [] = runRP(params)
     disp('Processing RP-model...')
     pos = getRPpos(TF_pos, corrMat, params.target_volatility);
-    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t);
+    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
 %--------------------------------------------------------------------------
