@@ -22,22 +22,18 @@ bar(sharpe_ratios)
 set(gca,'xtick', 1:length(models),'xticklabel', models)
 ylabel('Sharpe Ratio')
 
-figure(5), clf, title('Weight distribution')
+
 for iModel=1:length(models)
   model_pos = outCome.Models.(models{iModel}).pos;
   [data,groups] = grpstats(abs(model_pos'),assetClasses',{'sum', 'gname'});
-  subplot(2,2,iModel), title(models{iModel}),hold on
-  boxplot(abs(data')./repmat(sum(abs(data'),2),1,length(groups)),groups)
+  figure(), title(models{iModel}),hold on
+  plot(cumsum(abs(data')./repmat(sum(abs(data'),2),1,length(groups)),2))
   ylim([0,1])
+  legend(groups)
   %boxplot(model_pos./repmat(sum(abs(model_pos),2),1,size(model_pos,2)),assetClasses)
 end
 
 
-
-
-%   function [] = weightPerClass(model)
-%     pos = outCome.Models.(model).pos;
-%     
     
 
 end
