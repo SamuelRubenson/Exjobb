@@ -1,4 +1,4 @@
-function [w] = rpADMM(w0,Q,mu, signal)
+function [w] = rpADMM(w0,Q,mu)
 
   z=w0(:); u=zeros(length(w0),1);  
   tol = 10^-10; max_norm = 1;
@@ -7,7 +7,7 @@ function [w] = rpADMM(w0,Q,mu, signal)
   
   [H,D] = eig(Q);
   while max_norm>tol
-    x_new = 1/2*((z-u) + sqrt((z-u).^2 + 4*abs(signal(:))/rho));
+    x_new = 1/2*((z-u) + sqrt((z-u).^2 + 4/rho));
     z_new = rho*H*diag(1./(diag(2*mu*D)+rho))*H'*(x_new+u);
     u_new = u + (x_new-z_new);
     s = norm(rho*(z-z_new));

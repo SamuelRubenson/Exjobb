@@ -21,6 +21,7 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility)
       w0 = ones(n,1)*0.9*target_volatility/sqrt(sum(sum(adjusted_corrMat))); 
       %[w_t,~,exitflag] = fmincon(@(w)objective(w,adjusted_corrMat,n),w0,[],[],[],[],zeros(n,1),[],[],options);
       w_t = rpADMM(w0, adjusted_corrMat, n/target_volatility^2/2);
+      checkSolution(w_t, adjusted_corrMat)
       scaled_signed_wt = (w_t(:)'/max(abs(w_t))).*(sign(mod_signal(:)'));
       W = [W; scaled_signed_wt]; factor = [factor; max(abs(w_t))];
     end
@@ -37,12 +38,12 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility)
     C_adj = C.*signs;
   end
 
-  function [] = checkSolution(w_t, adjusted_corrMat, signal)
+  function [] = checkSolution(w_t, adjusted_corrMat)
     if abs(w_t'*adjusted_corrMat*w_t-target_volatility^2)>0.01
       disp('sigma error'); disp([w_t'*adjusted_corrMat*w_t, target_volatility^2]); 
     end
-    if any(abs(diff(w_t.*(adjusted_corrMat*w_t)./(abs(signal)/max(abs(signal)))))>0.01)
-      disp('not mcr'); disp(w_t.*(adjusted_corrMat*w_t)./(abs(signal)/max(abs(signal)))); 
+    if any(abs(diff(w_t.*(adjusted_corrMat*w_t)))>0.01)
+      disp('not mcr'); disp(w_t.*(adjusted_corrMat*w_t)); 
     end
   end
 
