@@ -12,6 +12,7 @@ addRequired(p, 'Config', @(A)isa(A,'struct'));
 addParameter(p,'TF_ema', default)
 addParameter(p,'MV', default)
 addParameter(p,'RP', default)
+addParameter(p,'RPmod', default)
 addParameter(p,'LES', default)
 
 parse(p,Open, High, Low, Close, Config, varargin{:});
@@ -33,6 +34,10 @@ end
 
 if isa(p.Results.RP, 'struct')
   runRP(p.Results.RP)
+end
+
+if isa(p.Results.RPmod, 'struct')
+  runRPMOD(p.Results.RPmod)
 end
 
 
@@ -81,6 +86,15 @@ end
     [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
+%--------------------------------------------------------------------------
+
+  function [] = runRPMOD(params)
+    disp('Processing RPmod-model...')
+    pos = getRPMODpos(TF_pos, corrMat, params.target_volatility);
+    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+    output.Models.RPmod = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
+  end
+
 %--------------------------------------------------------------------------
 
 end

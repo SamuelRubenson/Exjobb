@@ -22,11 +22,14 @@ MV = {'MV', MV_Params};
 RP_Params = struct('target_volatility', 10);
 RP = {'RP', RP_Params};
 
-outCome = evaluatePerformance(Open, High, Low, Close, Config, TF{:}, MV{:}, RP{:});
+RPmod_Params = struct('target_volatility', 10);
+RPM = {'RPmod', RPmod_Params};
+
+outCome = evaluatePerformance(Open, High, Low, Close, Config, TF{:}, MV{:}, RP{:}, RPM{:});
 
 visualizePerformance(outCome, dates, assetClasses);
 
 
 %%
-% outCome = changeCost(outCome, 0, false, Open, Close);
-% visualizePerformance(outCome, dates, assetClasses);
+outCome = changeCost(outCome, 0, true, Open, Close);
+visualizePerformance(outCome, dates, assetClasses);

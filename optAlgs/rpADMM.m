@@ -1,5 +1,6 @@
 function [w] = rpADMM(w0,Q,mu, signal)
-
+  if ~exist('signal', 'var'), signal = 1; end
+  
   z=w0(:); u=zeros(length(w0),1);  
   tol = 10^-10; max_norm = 1;
   rho = 0.5;
