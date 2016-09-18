@@ -8,7 +8,7 @@ colors =[      0,    0.4470,    0.7410;
          0.3010,    0.7450,    0.9330;
          0.6350,    0.0780,    0.1840];
     
-for i = 1:4, figure(i), clf; end
+for i = 1:3, figure(i), clf; end
 models = fieldnames(outCome.Models);
 sharpe_ratios = zeros(length(models), 1);
 
@@ -23,17 +23,21 @@ for iModel = 1:length(models);
   hold off
 end
 figure(1), title('Equity curve'), legend(models)
-figure(2), hold on, title('Drawdown'), boxplot(drawdowns, 'Labels', models, 'Notch', 'on')
-figure(3), hold on, title('Drawdown'), plot(dates, drawdowns), ylim([1.5*min(min(drawdowns)),0]), legend(models)
-
-figure(4), clf, hold on
+figure(2),
+subplot(1,2,1), hold on, title('Drawdown'), boxplot(drawdowns, 'Labels', models, 'Notch', 'on')
+subplot(1,2,2), hold on
 bar(sharpe_ratios)
 set(gca,'xtick', 1:length(models),'xticklabel', models)
 ylabel('Sharpe Ratio')
 
+%figure(3), hold on, title('Drawdown'), plot(dates, drawdowns), ylim([1.5*min(min(drawdowns)),0]), legend(models)
+
+%figure(4), clf, hold on
 
 
-figure(5), clf
+
+
+figure(3), clf
 for iModel=1:length(models)
   model_pos = outCome.Models.(models{iModel}).pos;
   [data,groups] = grpstats(abs(model_pos'),assetClasses',{'sum', 'gname'});
