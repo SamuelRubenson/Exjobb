@@ -1,11 +1,11 @@
-function [ RPpos ] = getRPpos(signals, corrMat, target_volatility)
-
+function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda)
+  if ~exist('lambda', 'var'), lambda = 0; end
   [T,N] = size(signals);
   RPpos = nan(T,N);
   
   for t = 2:T
     if mod(t,1000)==0, fprintf('Processing RP-model...(%d/%d)\n',t,T); end
-    Q = corrMat(:,:,t);
+    Q = addToDiag(corrMat(:,:,t), lambda);
     activeI = logical(any(Q).*(~isnan(signals(t,:))));
     if ~any(activeI), continue; end
     
@@ -45,6 +45,10 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility)
     if any(abs(diff(w_t.*(adjusted_corrMat*w_t)))>0.01)
       disp('not mcr'); disp(w_t.*(adjusted_corrMat*w_t)); 
     end
+  end
+
+  function[regQ] = addToDiag(Q, lambda)
+    regQ = Q + lambda*diag(diag(Q));
   end
 
 end
