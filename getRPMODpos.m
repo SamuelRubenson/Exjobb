@@ -8,13 +8,21 @@ function [ RPpos ] = getRPMODpos(signals, corrMat, target_volatility, lambda)
     Q = addToDiag(corrMat(:,:,t), lambda);
     activeI = logical(any(Q).*(~isnan(signals(t,:))));
     if ~any(activeI), continue; end
-    
     signal = signals(t,activeI)';
-    adjusted_corrMat = adjustForSigns(Q(activeI,activeI),sign(signal(:)));
-    w_t = rpADMM(adjusted_corrMat, target_volatility, signal);
-    checkSolution(w_t, adjusted_corrMat, signal);
-   
-    RPpos(t,activeI) = w_t.*sign(signal);
+    norm_signal = signal/norm(signal);
+    n = length(signal);
+    
+    W = []; factor = [];
+    for iReg = [1000000 100 10 2 0.5]
+      mod_signal = ((Q(activeI,activeI) + iReg*eye(n))/(iReg+1))\signal;
+      adjusted_corrMat = adjustForSigns(Q(activeI,activeI),sign(mod_signal(:)));      
+      w_t = rpADMM(adjusted_corrMat, target_volatility, signal);  
+      checkSolution(w_t, adjusted_corrMat, signal);
+      scaled_signed_wt = (w_t(:)'/norm(w_t)).*(sign(mod_signal(:)'));
+      W = [W; scaled_signed_wt]; factor = [factor; norm(w_t)];
+    end
+    [~,closest] = min(pdist2(W,norm_signal(:)'));
+    RPpos(t,activeI) = W(closest,:)*factor(closest);
   end
   
   
