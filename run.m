@@ -11,7 +11,7 @@ load assetClasses
 load 160830
 dates = datetime(Date,'ConvertFrom','datenum');
 
-Config = struct('cost', 0, 'riskAdjust', false, 'yz_tau', 60, 'cov_tau', 100, 'cov_filter', 'dEMA');
+Config = struct('cost', 0, 'riskAdjust', false, 'yz_tau', 60, 'cov_tau', 100, 'cov_filter', 'EMA');
 
 TF_ema_Params = struct('aLong', [], 'aShort', []);
 TF = {'TF_ema', TF_ema_Params};
@@ -31,5 +31,5 @@ visualizePerformance(outCome, dates, assetClasses);
 
 
 %%
-outCome = changeCost(outCome, 0, true, Open, Close);
+outCome = changeCost(outCome, 0, false, Open, Close);
 visualizePerformance(outCome, dates, assetClasses);

@@ -8,12 +8,12 @@ colors =[      0,    0.4470,    0.7410;
          0.3010,    0.7450,    0.9330;
          0.6350,    0.0780,    0.1840];
     
-for i = 1:3, figure(i), clf; end
+%for i = 1:3, figure(i), clf; end
 models = fieldnames(outCome.Models);
 sharpe_ratios = zeros(length(models), 1);
-
 drawdowns = zeros(numel(dates), length(models));
 
+figure(1), clf
 for iModel = 1:length(models);
   model_data = outCome.Models.(models{iModel});
   sharpe_ratios(iModel) = model_data.sharpe;
@@ -23,7 +23,7 @@ for iModel = 1:length(models);
   hold off
 end
 figure(1), title('Equity curve'), legend(models)
-figure(2),
+figure(2), clf
 subplot(1,2,1), hold on, title('Drawdown'), boxplot(drawdowns, 'Labels', models, 'Notch', 'on')
 subplot(1,2,2), hold on
 bar(sharpe_ratios)
@@ -85,32 +85,38 @@ legend(groups)
 
 %------- Variance in markets compared to TF
 
-
-meanVarTF = nanmean((outCome.Models.TF.pos./repmat(NansumNan(abs(outCome.Models.TF.pos),2),1,nMarkets)).^2,1);
+%./repmat(NansumNan(abs(outCome.Models.TF.pos),2),1,nMarkets)
+%./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
+meanVarTF = nanmean((outCome.Models.TF.pos).^2,1);
 figure(5), clf
 for iModel = 1:length(models)
-   meanVarModel = nanmean((outCome.Models.(models{iModel}).pos./...
-     repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)).^2,1);
+   meanVarModel = nanmean((outCome.Models.(models{iModel}).pos).^2,1);
    ratios = meanVarModel./meanVarTF;
-   subplot(2,2,iModel);
-   bar(ratios);
+   subplot(2,2,iModel), hold on, title(models{iModel})
+   bar(ratios/mean(ratios)); %how to scale?
 end
 
 
-
-[meanVarTF, groups] = grpstats(NansumNan((outCome.Models.TF.pos./...
-  repmat(NansumNan(abs(outCome.Models.TF.pos),2),1,nMarkets))'.^2,2),...
-  assetClasses',{'mean', 'gname'}); 
+%./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
+[meanVarTF, groups] = grpstats(NansumNan((outCome.Models.TF.pos)'.^2,2),...
+  assetClasses',{'sum', 'gname'}); 
 figure(6), clf
 for iModel = 1:length(models)
-   [meanVarModel, groups] = grpstats(NansumNan((outCome.Models.(models{iModel}).pos./...
-     repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets))'.^2,2),...
-     assetClasses',{'mean', 'gname'});
+   [meanVarModel, groups] = grpstats(NansumNan((outCome.Models.(models{iModel}).pos)'.^2,2),...
+     assetClasses',{'sum', 'gname'});
    ratios = meanVarModel./meanVarTF;
    subplot(2,2,iModel);
-   bar(ratios);
+   bar(ratios/mean(ratios));
    set(gca,'xtick', 1:length(groups),'xticklabel', groups)
 end
+
+
+%-----------------------------------------
+
+Q = outCome.General.corr;
+Q_mean = mean(nanmean(abs(Q),3),2);
+figure(7), clf
+bar(Q_mean)
 
 
 end
