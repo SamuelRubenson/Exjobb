@@ -10,12 +10,8 @@ function [ RPpos ] = getRPMODpos(signals, corrMat, target_volatility, lambda)
     if ~any(activeI), continue; end
     
     signal = signals(t,activeI)';
-    
     adjusted_corrMat = adjustForSigns(Q(activeI,activeI),sign(signal(:)));
-
-    w0 = ones(size(signal))*0.9*target_volatility/sqrt(sum(sum(adjusted_corrMat)));
-    mu = sum(abs(signal))/target_volatility^2/2;
-    w_t = rpADMM(w0, adjusted_corrMat, mu, signal);
+    w_t = rpADMM(adjusted_corrMat, target_volatility, signal);
     checkSolution(w_t, adjusted_corrMat, signal);
    
     RPpos(t,activeI) = w_t.*sign(signal);

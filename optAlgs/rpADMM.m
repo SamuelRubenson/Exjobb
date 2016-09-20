@@ -1,5 +1,8 @@
-function [w] = rpADMM(w0,Q,mu, signal)
-  if ~exist('signal', 'var'), signal = 1; end
+function [w] = rpADMM(Q, target_volatility, signal)
+  if ~exist('signal', 'var'), signal = ones(size(Q,1),1); end
+
+  w0 = ones(size(signal))*0.9*target_volatility/sqrt(sum(sum(Q)));
+  mu = sum(abs(signal))/target_volatility^2/2;
   
   z=w0(:); u=zeros(length(w0),1);  
   tol = 10^-10; max_norm = 1;

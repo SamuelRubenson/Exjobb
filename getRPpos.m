@@ -18,9 +18,7 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda)
       mod_signal = ((Q(activeI,activeI) + iReg*eye(n))/(iReg+1))\signal;
       adjusted_corrMat = adjustForSigns(Q(activeI,activeI),sign(mod_signal(:)));
 
-      w0 = ones(n,1)*0.9*target_volatility/sqrt(sum(sum(adjusted_corrMat))); 
-      %[w_t,~,exitflag] = fmincon(@(w)objective(w,adjusted_corrMat,n),w0,[],[],[],[],zeros(n,1),[],[],options);
-      w_t = rpADMM(w0, adjusted_corrMat, n/target_volatility^2/2);
+      w_t = rpADMM(adjusted_corrMat, target_volatility);
       checkSolution(w_t, adjusted_corrMat)
       scaled_signed_wt = (w_t(:)'/max(abs(w_t))).*(sign(mod_signal(:)'));
       W = [W; scaled_signed_wt]; factor = [factor; max(abs(w_t))];
