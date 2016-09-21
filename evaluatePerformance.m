@@ -82,7 +82,7 @@ end
 
   function [] = runRP(params)
     disp('Processing RP-model...')
-    pos = getRPpos(TF_pos, corrMat, params.target_volatility, params.lambda);
+    pos = getRPpos(TF_pos, corrMat, params.target_volatility, params.lambda, params.regCoeffs);
     [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
@@ -90,7 +90,7 @@ end
 
   function [] = runRPMOD(params)
     disp('Processing RPmod-model...')
-    pos = getRPMODpos(TF_pos, corrMat, params.target_volatility, params.lambda);
+    pos = getRPMODpos(TF_pos, corrMat, params.target_volatility, params.lambda, params.regCoeffs);
     [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.RPmod = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end

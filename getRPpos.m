@@ -1,8 +1,9 @@
-function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda)
+function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda, regCoeffs)
   if ~exist('lambda', 'var'), lambda = 0; end
+  if ~exist('regCoeff', 'var'), regCoeffs = 10^10; end
   [T,N] = size(signals);
   RPpos = nan(T,N);
-  
+
   for t = 2:T
     if mod(t,1000)==0, fprintf('Processing RP-model...(%d/%d)\n',t,T); end
     Q = addToDiag(corrMat(:,:,t), lambda);
@@ -10,18 +11,17 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda)
     if ~any(activeI), continue; end
     
     signal = signals(t,activeI)';
-    norm_signal = signal/max(abs(signal));
+    norm_signal = signal/norm(signal);
     n = length(signal);
     
     W = []; factor = [];
-    for iReg = [1000000 100 10 2 0.5]
+    for iReg = regCoeffs
       mod_signal = ((Q(activeI,activeI) + iReg*eye(n))/(iReg+1))\signal;
       adjusted_corrMat = adjustForSigns(Q(activeI,activeI),sign(mod_signal(:)));
-
       w_t = rpADMM(adjusted_corrMat, target_volatility);
       checkSolution(w_t, adjusted_corrMat)
-      scaled_signed_wt = (w_t(:)'/max(abs(w_t))).*(sign(mod_signal(:)'));
-      W = [W; scaled_signed_wt]; factor = [factor; max(abs(w_t))];
+      scaled_signed_wt = (w_t(:)'/norm(w_t)).*(sign(mod_signal(:)'));
+      W = [W; scaled_signed_wt]; factor = [factor; norm(w_t)];
     end
     dists = pdist2(W,norm_signal(:)');
     [~,closest] = min(dists);

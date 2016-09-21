@@ -1,5 +1,6 @@
-function [ RPpos ] = getRPMODpos(signals, corrMat, target_volatility, lambda)
+function [ RPpos ] = getRPMODpos(signals, corrMat, target_volatility, lambda, regCoeffs)
   if ~exist('lambda', 'var'), lambda = 0; end
+  if ~exist('regCoeff', 'var'), regCoeffs = 10^10; end
   [T,N] = size(signals);
   RPpos = nan(T,N);
   
@@ -13,7 +14,7 @@ function [ RPpos ] = getRPMODpos(signals, corrMat, target_volatility, lambda)
     n = length(signal);
     
     W = []; factor = [];
-    for iReg = [1000000 100 10 2 0.5]
+    for iReg = regCoeffs
       mod_signal = ((Q(activeI,activeI) + iReg*eye(n))/(iReg+1))\signal;
       adjusted_corrMat = adjustForSigns(Q(activeI,activeI),sign(mod_signal(:)));      
       w_t = rpADMM(adjusted_corrMat, target_volatility, signal);  
