@@ -66,17 +66,17 @@ for iModel = 1:length(models)
     if ~any(activeI), continue; end
     risk_contributions(it,activeI) = model_pos(it,activeI)' .* (Qt(activeI,activeI)*model_pos(it,activeI)');
   end
-  [data,groups] = grpstats(abs(risk_contributions'),assetClasses',{'sum', 'gname'});
+  [data,groups] = grpstats((risk_contributions'),assetClasses',{'sum', 'gname'});
   data(isnan(data)) = 0;
-  norm_data = sum(abs(data'),2); norm_data(norm_data==0) = 1; %to avoid NaN
-  plot_data = [zeros(size(data',1),1), cumsum(abs(data')./repmat(norm_data,1,length(groups)),2)];
+  norm_data = sum((data'),2); norm_data(norm_data==0) = 1; %to avoid NaN
+  plot_data = [zeros(size(data',1),1), cumsum((data')./repmat(norm_data,1,length(groups)),2)];
   subplot(2,2,iModel), title(models{iModel}),hold on
   for iClass = 2:size(plot_data,2)
     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
     xlim([datenum(dates(1)), datenum(dates(end))])
     dynamicDateTicks()
   end
-  ylim([0,1])
+  ylim([-0.1,1.1])
 end
 legend(groups)
 
@@ -109,15 +109,27 @@ for iModel = 1:length(models)
    bar(ratios/mean(ratios));
    set(gca,'xtick', 1:length(groups),'xticklabel', groups)
 end
-
-
-%-----------------------------------------
-
+% 
+% 
+% %----------------------------------------- Average corr
+% 
 Q = outCome.General.corr;
-Q_mean = mean(nanmean(abs(Q),3),2);
+Q_mean = mean(nanmean(Q,3),2);
 figure(7), clf
 bar(Q_mean)
 
-
+  %------------------------------------------------------
+  Q = outCome.General.corr;
+  minEig = nan(size(Q,3),nMarkets);
+  for t = 1:size(Q,3)
+    Qt = Q(:,:,t);
+    activeI = logical(any(Qt));
+    if ~any(activeI), continue; end
+    minEig(t,activeI) = eig(Qt(activeI,activeI));
+  end
+  figure()
+  plot(minEig)
+  
+  
 end
 
