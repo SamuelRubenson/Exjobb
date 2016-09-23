@@ -65,26 +65,38 @@ end
 
   function [] = runMV(params)
     disp('Processing MV-model...')
-    pos = getMVpos(TF_pos, corrMat, params.lambda, Config.target_volatility);
-    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    output.Models.MV = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
+    sharpe=[]; equityCurve=[]; pos=[]; htime = [];
+    for lambda = params.lambda
+      ipos = getMVpos(TF_pos, corrMat, lambda, Config.target_volatility);
+      [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht];
+    end
+    output.Models.MV = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'lambda', params.lambda);
   end
 
 %--------------------------------------------------------------------------
 
   function [] = runRP(params)
     disp('Processing RP-model...')
-    pos = getRPpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
-    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    output.Models.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
+    sharpe=[]; equityCurve=[]; pos=[]; htime = [];
+    for lambda = params.lambda
+      ipos = getRPpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
+      [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht];
+    end
+    output.Models.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'lambda', params.lambda);
   end
 %--------------------------------------------------------------------------
 
   function [] = runRPMOD(params)
     disp('Processing RPmod-model...')
-    pos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
-    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    output.Models.RPmod = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
+    sharpe=[]; equityCurve=[]; pos=[]; htime = [];
+    for lambda = params.lambda
+      ipos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
+      [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht];
+    end
+    output.Models.RPmod = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'lambda', params.lambda);
   end
 
 %--------------------------------------------------------------------------
