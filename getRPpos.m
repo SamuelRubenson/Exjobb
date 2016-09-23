@@ -1,6 +1,6 @@
 function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda, regCoeffs)
   if ~exist('lambda', 'var'), lambda = 0; end
-  if ~exist('regCoeff', 'var'), regCoeffs = 10^10; end
+  if ~exist('regCoeffs', 'var'), regCoeffs = 10^10; end
   [T,N] = size(signals);
   RPpos = nan(T,N);
 
