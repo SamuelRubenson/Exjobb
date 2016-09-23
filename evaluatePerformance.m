@@ -56,15 +56,7 @@ end
   
   function [pos] = runTF_ema(params)
     disp('Processing TF-model...')
-    if isempty(params.aLong), params.aLong = 200; end
-    if isempty(params.aShort), params.aShort = 10; end
-    
-    normClose = CumsumNan(dZ);
-    emaLong = Ema(normClose,1/params.aLong);
-    emaShort = Ema(normClose,1/params.aShort);
-    pos=lvcf(emaShort-emaLong); 
-    %pos = pos./repmat(max(abs(pos),[],2),1,nMarkets); %adjust to be in sigma-range?
-    
+    pos = getTFpos(dZ, corrMat, params.aLong, params.aShort, Config.target_volatility);
     [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.TF = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
@@ -73,7 +65,7 @@ end
 
   function [] = runMV(params)
     disp('Processing MV-model...')
-    pos = getMVpos(TF_pos, corrMat, params);
+    pos = getMVpos(TF_pos, corrMat, params.lambda, Config.target_volatility);
     [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.MV = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
@@ -82,7 +74,7 @@ end
 
   function [] = runRP(params)
     disp('Processing RP-model...')
-    pos = getRPpos(TF_pos, corrMat, params.target_volatility, params.lambda, params.regCoeffs);
+    pos = getRPpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
     [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
@@ -90,7 +82,7 @@ end
 
   function [] = runRPMOD(params)
     disp('Processing RPmod-model...')
-    pos = getRPMODpos(TF_pos, corrMat, params.target_volatility, params.lambda, params.regCoeffs);
+    pos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
     [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.RPmod = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end

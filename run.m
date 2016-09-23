@@ -11,7 +11,7 @@ load assetClasses
 load 160830
 dates = datetime(Date,'ConvertFrom','datenum');
 
-Config = struct('cost', 0, 'riskAdjust', false, 'yz_tau', 60, 'cov_tau', 100, 'cov_filter', 'EMA');
+Config = struct('cost', 0, 'target_volatility', 10, 'riskAdjust', false, 'yz_tau', 60, 'cov_tau', 100, 'cov_filter', 'EMA');
 
 TF_ema_Params = struct('aLong', [], 'aShort', []);
 TF = {'TF_ema', TF_ema_Params};
@@ -19,10 +19,10 @@ TF = {'TF_ema', TF_ema_Params};
 MV_Params = struct('lambda', 0.5);
 MV = {'MV', MV_Params};
 
-RP_Params = struct('target_volatility', 10, 'lambda', 0, 'regCoeffs', 10^10);
+RP_Params = struct('lambda', 0.25, 'regCoeffs', 10^10);
 RP = {'RP', RP_Params};
 
-RPmod_Params = struct('target_volatility', 10, 'lambda', 0, 'regCoeffs', 10^10);
+RPmod_Params = struct('lambda', 0.25, 'regCoeffs', 10^10);
 RPM = {'RPmod', RPmod_Params};
 
 outCome = evaluatePerformance(Open, High, Low, Close, Config, TF{:}, MV{:}, RP{:}, RPM{:});
@@ -31,5 +31,5 @@ visualizePerformance(outCome, dates, assetClasses);
 
 %[1000000 100 10 2 0.5]
 %%
-% outCome = changeCost(outCome, 0, false, Open, Close);
-% visualizePerformance(outCome, dates, assetClasses);
+outCome = changeCost(outCome, 0.1, false, Open, Close);
+visualizePerformance(outCome, dates, assetClasses);

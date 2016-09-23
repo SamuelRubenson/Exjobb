@@ -23,7 +23,8 @@ function [ RPpos ] = getRPMODpos(signals, corrMat, target_volatility, lambda, re
       W = [W; scaled_signed_wt]; factor = [factor; norm(w_t)];
     end
     [~,closest] = min(pdist2(W,norm_signal(:)'));
-    RPpos(t,activeI) = W(closest,:)*factor(closest);
+    w = W(closest,:)*factor(closest);
+    RPpos(t,activeI) = w*target_volatility/sqrt(w(:)'*corrMat(activeI,activeI,t)*w(:));
   end
   
   

@@ -1,4 +1,4 @@
-function [MVpos] = getMVpos( signals, corrMat, params )
+function [MVpos] = getMVpos( signals, corrMat, lambda, target_volatility )
 
   [T,N] = size(signals);
   
@@ -13,8 +13,10 @@ function [MVpos] = getMVpos( signals, corrMat, params )
       [H,D] = eig(Q(activeI, activeI)); D(D<0) = 0; 
       Q(activeI, activeI) = H*D*H'; 
     end
-    Q = addToDiag(Q(activeI, activeI), params.lambda);
-    MVpos(t,activeI) = Q\(signals(t,activeI)');
+    Qreg = addToDiag(Q(activeI, activeI), lambda);
+    wt = Qreg\(signals(t,activeI)');
+    wt_scaled = wt*target_volatility/sqrt(wt(:)'*Q(activeI, activeI)*wt(:));
+    MVpos(t,activeI) = wt_scaled;
   end
   
   

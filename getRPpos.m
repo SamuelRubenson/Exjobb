@@ -25,7 +25,8 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda, regCo
     end
     dists = pdist2(W,norm_signal(:)');
     [~,closest] = min(dists);
-    RPpos(t,activeI) = W(closest,:)*factor(closest);
+    w = W(closest,:)*factor(closest);
+    RPpos(t,activeI) = w*target_volatility/sqrt(w(:)'*corrMat(activeI,activeI,t)*w(:));
   end
   
   
