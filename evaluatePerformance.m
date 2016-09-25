@@ -1,4 +1,4 @@
-function [ output ] = evaluatePerformance(Open, High, Low, Close, Config, varargin)
+function [ output ] = evaluatePerformance(Open, High, Low, Close, Config, assetClasses, varargin)
 p = inputParser;
 p.CaseSensitive = false;
 
@@ -9,13 +9,15 @@ addRequired(p, 'High', @isnumeric);
 addRequired(p, 'Low', @isnumeric);
 addRequired(p, 'Close', @isnumeric);
 addRequired(p, 'Config', @(A)isa(A,'struct'));
+addRequired(p, 'assetClasses', @iscell);
 addParameter(p,'TF_ema', default)
 addParameter(p,'MV', default)
 addParameter(p,'RP', default)
 addParameter(p,'RPmod', default)
+addParameter(p,'MVRP', default)
 addParameter(p,'LES', default)
 
-parse(p,Open, High, Low, Close, Config, varargin{:});
+parse(p,Open, High, Low, Close, Config, assetClasses, varargin{:});
 
 [T, nMarkets] = size(Close);
 output = struct('General', struct, 'Models',struct);
@@ -40,6 +42,9 @@ if isa(p.Results.RPmod, 'struct')
   runModel('RPmod', p.Results.RPmod)
 end
 
+if isa(p.Results.MVRP, 'struct')
+  runModel('MVRP', p.Results.MVRP)
+end
 
 %---------------------------------------------------------------------------
   
@@ -72,12 +77,14 @@ end
         pos = getRPpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
       case 'RPmod'
         pos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
+      case 'MVRP'
+        pos = getMVRPpos(TF_pos, corrMat, assetClasses, Config.target_volatility, params.lambdaMV, params.lambdaRP);
     end
     [sharpe, equityCurve, htime, rev] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.(model) = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'rev', rev);
   end
 
-%--------------------------------------------------------------------------
+
 
 end
 

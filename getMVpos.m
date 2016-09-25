@@ -1,8 +1,8 @@
-function [MVpos] = getMVpos( signals, corrMat, lambda, target_volatility )
+function [MVpos] = getMVpos( signals, corrMat, target_volatility, lambda )
 
   [T,N] = size(signals);
   
-  MVpos = zeros(T,N);
+  MVpos = nan(T,N);
   for t = 1:T
     Q = (corrMat(:,:,t) + corrMat(:,:,t)')/2; %sym
     activeI = logical(any(Q).*(~isnan(signals(t,:))));
