@@ -1,4 +1,4 @@
-function [ output ] = evaluatePerformance(Open, High, Low, Close, Config, varargin)
+function [ output ] = evaluatePerformance(Open, High, Low, Close, Config, assetClasses, varargin)
 p = inputParser;
 p.CaseSensitive = false;
 
@@ -9,13 +9,15 @@ addRequired(p, 'High', @isnumeric);
 addRequired(p, 'Low', @isnumeric);
 addRequired(p, 'Close', @isnumeric);
 addRequired(p, 'Config', @(A)isa(A,'struct'));
+addRequired(p, 'assetClasses', @iscell);
 addParameter(p,'TF_ema', default)
 addParameter(p,'MV', default)
 addParameter(p,'RP', default)
 addParameter(p,'RPmod', default)
+addParameter(p,'MVRP', default)
 addParameter(p,'LES', default)
 
-parse(p,Open, High, Low, Close, Config, varargin{:});
+parse(p,Open, High, Low, Close, Config, assetClasses, varargin{:});
 
 [T, nMarkets] = size(Close);
 output = struct('General', struct, 'Models',struct);
@@ -40,6 +42,9 @@ if isa(p.Results.RPmod, 'struct')
   runRPMOD(p.Results.RPmod)
 end
 
+if isa(p.Results.MVRP, 'struct')
+  runMVRP(p.Results.MVRP)
+end
 
 %---------------------------------------------------------------------------
   
@@ -65,7 +70,7 @@ end
 
   function [] = runMV(params)
     disp('Processing MV-model...')
-    pos = getMVpos(TF_pos, corrMat, params.lambda, Config.target_volatility);
+    pos = getMVpos(TF_pos, corrMat, Config.target_volatility, params.lambda);
     [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.MV = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
@@ -88,6 +93,17 @@ end
   end
 
 %--------------------------------------------------------------------------
+
+  function [] = runMVRP(params)
+    disp('Processing MVRP-model...')
+    pos = getMVRPpos(TF_pos, corrMat, assetClasses, Config.target_volatility, params.lambdaMV, params.lambdaRP);
+    %pos = getTESTpos(dZ, TF_pos, corrMat, assetClasses, Config.target_volatility, params.lambda);
+    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+    output.Models.MVRP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
+  end
+
+%--------------------------------------------------------------------------
+
 
 end
 

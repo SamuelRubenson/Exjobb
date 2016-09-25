@@ -25,11 +25,14 @@ RP = {'RP', RP_Params};
 RPmod_Params = struct('lambda', 0.25, 'regCoeffs', 10^10);
 RPM = {'RPmod', RPmod_Params};
 
-outCome = evaluatePerformance(Open, High, Low, Close, Config, TF{:}, MV{:}, RP{:}, RPM{:});
+MVRP_Params = struct('lambdaMV', 0.5, 'lambdaRP', 0);
+MVRP = {'MVRP', MVRP_Params};
+
+outCome = evaluatePerformance(Open, High, Low, Close, Config, assetClasses, TF{:}, MVRP{:});
 
 visualizePerformance(outCome, dates, assetClasses);
 
 %[1000000 100 10 2 0.5]
 %%
-outCome = changeCost(outCome, 0.1, false, Open, Close);
-visualizePerformance(outCome, dates, assetClasses);
+% outCome = changeCost(outCome, 0.1, false, Open, Close);
+% visualizePerformance(outCome, dates, assetClasses);
