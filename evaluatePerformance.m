@@ -46,6 +46,10 @@ if isa(p.Results.MVRP, 'struct')
   runModel('MVRP', p.Results.MVRP)
 end
 
+if isa(p.Results.LES, 'struct')
+  runLES(p.Results.LES)
+end
+
 %---------------------------------------------------------------------------
   
   function [dZ, yz, corrMat_tm1] = initialize()
@@ -85,6 +89,15 @@ end
   end
 
 
+  function [] = runLES(params)
+    disp('Processing LES-model...')
+    %pos = getMVRPpos(TF_pos, corrMat, assetClasses, Config.target_volatility, params.lambdaMV, params.lambdaRP);
+    pos = getLESpos(dZ, TF_pos, corrMat, assetClasses, Config.target_volatility, params.lambdaMV);
+    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+    output.Models.LES = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
+  end
+
+%--------------------------------------------------------------------------
 
 end
 
