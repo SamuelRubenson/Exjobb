@@ -16,7 +16,7 @@ Config = struct('cost', 0, 'target_volatility', 10, 'riskAdjust', false, 'yz_tau
 TF_ema_Params = struct('aLong', [], 'aShort', []);
 TF = {'TF_ema', TF_ema_Params};
 
-MV_Params = struct('lambda', 0.5);
+MV_Params = struct('lambda', 0.2);
 MV = {'MV', MV_Params};
 
 RP_Params = struct('lambda', 0.5, 'regCoeffs', 10^10);
@@ -28,9 +28,10 @@ RPM = {'RPmod', RPmod_Params};
 MVRP_Params = struct('lambdaMV', 0.5, 'lambdaRP', 0);
 MVRP = {'MVRP', MVRP_Params};
 
-outCome = evaluatePerformance(Open, High, Low, Close, Config, assetClasses, TF{:}, MVRP{:});
+start = 4000; X = [1:3, 6:9, 11, 14 ,22:23, 26, 4, 10, 16:18 27, 29, 34, 37, 40, 41:42, 5, 13, 15, 21, 25, 31, 63:68, 12, 19, 20, 24, 28, 32, 33, 35, 36, 38, 43:44];
+outCome = evaluatePerformance(Open(start:end,X), High(start:end,X), Low(start:end,X), Close(start:end,X), Config, assetClasses(X), TF{:}, MV{:}, RP{:}, MVRP{:});
 
-visualizePerformance(outCome, dates, assetClasses);
+visualizePerformance(outCome, dates(start:end), assetClasses(X));
 
 %[1000000 100 10 2 0.5]
 %%

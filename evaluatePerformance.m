@@ -24,7 +24,7 @@ output = struct('General', struct, 'Models',struct);
 
 [dZ, sigma_t, corrMat] = initialize();
 
-output.General = struct('std', sigma_t, 'corr', corrMat);
+output.General = struct('std', sigma_t, 'corr', corrMat, 'dZ', dZ);
 
 if isa(p.Results.TF_ema, 'struct')
   TF_pos = runTF_ema(p.Results.TF_ema);

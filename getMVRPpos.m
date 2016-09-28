@@ -26,8 +26,8 @@ function [pos] = getMVRPpos( signals, corrMat, assetClasses,  target_volatility,
      gamma_j = mv_pos{jC};
      for t = 1:T
        Qt = corrMat(iInd,jInd,t);
-       activeI = logical(any(Qt,2)'.*(~isnan(gamma_i(t,:)))); 
-       activeJ = logical(any(Qt,1).*(~isnan(gamma_j(t,:))));
+       activeI = ~isnan(gamma_i(t,:)); 
+       activeJ = ~isnan(gamma_j(t,:));
        if ~any(activeI) || ~any(activeJ), continue; end
        corrMatClass(iC,jC,t) = gamma_i(t,activeI)*Qt(activeI,activeJ)*gamma_j(t,activeJ)'/target_volatility^2;
      end
@@ -36,6 +36,7 @@ function [pos] = getMVRPpos( signals, corrMat, assetClasses,  target_volatility,
 
  
  rp_pos = getRPpos(mu,corrMatClass, target_volatility, lambdaRP);
+ %rp_pos = ones(T,nC);
  
  pos = nan(T,N);
  for iC = 1:nC
@@ -43,6 +44,12 @@ function [pos] = getMVRPpos( signals, corrMat, assetClasses,  target_volatility,
    gamma = mv_pos{iC};
    n = size(gamma,2);
    pos(:,ind) = repmat(rp_pos(:,iC),1,n).*gamma/target_volatility;
+ end
+ 
+ for t = 1:t
+   ind = ~isnan(pos(t,:));
+   pos(t,ind) = pos(t,ind)*target_volatility/sqrt(pos(t,ind)*corrMat(ind,ind,t)*pos(t,ind)');
+   sqrt(pos(t,ind)*corrMat(ind,ind,t)*pos(t,ind)')
  end
  
  
