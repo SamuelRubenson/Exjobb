@@ -25,11 +25,11 @@ RP = {'RP', RP_Params};
 RPmod_Params = struct('lambda', 0.5, 'regCoeffs', 10^10);
 RPM = {'RPmod', RPmod_Params};
 
-LES_Params = struct('lambdaMV', 0.5, 'lambdaRP', 0);
+LES_Params = struct('lambdaMV', 0.3);
 LES = {'LES', LES_Params};
 
-start = 9000; X = [1:3, 6:9, 11, 14 ,22:23, 26, 4, 10, 16:18 27, 29, 34, 37, 40, 41:42, 5, 13, 15, 21, 25, 31, 63:68, 12, 19, 20, 24, 28, 32, 33, 35, 36, 38, 43:44];
-outCome = evaluatePerformance(Open(start:end,X), High(start:end,X), Low(start:end,X), Close(start:end,X), Config, assetClasses(X), TF{:}, MV{:}, RP{:}, LES{:});
+start = 1; X = 1:74;% [1:3, 6:9, 11, 14 ,22:23, 26, 4, 10, 16:18 27, 29, 34, 37, 40, 41:42, 5, 13, 15, 21, 25, 31, 63:68, 12, 19, 20, 24, 28, 32, 33, 35, 36, 38, 43:44];
+outCome = evaluatePerformance(Open(start:end,X), High(start:end,X), Low(start:end,X), Close(start:end,X), Config, assetClasses(X), TF{:}, MV{:}, LES{:});
 
 visualizePerformance(outCome, dates(start:end), assetClasses(X));
 
