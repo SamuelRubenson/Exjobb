@@ -91,8 +91,7 @@ end
 
   function [] = runLES(params)
     disp('Processing LES-model...')
-    %pos = getMVRPpos(TF_pos, corrMat, assetClasses, Config.target_volatility, params.lambdaMV, params.lambdaRP);
-    pos = getLESpos(dZ, TF_pos, corrMat, assetClasses, Config.target_volatility, params.lambdaMV);
+    pos = getLESpos(dZ, TF_pos, corrMat, params.lookBack, Config.target_volatility, params.beta);
     [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.LES = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
   end
