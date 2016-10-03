@@ -9,7 +9,6 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda, regCo
     Q = addToDiag(corrMat(:,:,t), lambda);
     activeI = logical(any(Q).*(~isnan(signals(t,:))));
     if ~any(activeI), continue; end
-    
     signal = signals(t,activeI)';
     norm_signal = signal/norm(signal);
     n = length(signal);

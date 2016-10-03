@@ -43,7 +43,7 @@ for iModel=1:length(models)
   data(isnan(data)) = 0;
   norm_data = sum(abs(data'),2); norm_data(norm_data==0) = 1;%to avoid NaN
   plot_data = [zeros(size(data',1),1), cumsum(abs(data')./repmat(norm_data,1,length(groups)),2)];
-  subplot(2,2,iModel), title(models{iModel}),hold on
+  subplot(ceil(numel(models)/2),2,iModel), title(models{iModel}),hold on
   for iClass = 2:size(plot_data,2)
     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
     xlim([datenum(dates(1)), datenum(dates(end))])
@@ -69,7 +69,7 @@ for iModel = 1:length(models)
   data(isnan(data)) = 0;
   norm_data = sum((data'),2); norm_data(norm_data==0) = 1; %to avoid NaN
   plot_data = [zeros(size(data',1),1), cumsum((data')./repmat(norm_data,1,length(groups)),2)];
-  subplot(2,2,iModel), title(models{iModel}),hold on
+  subplot(ceil(numel(models)/2),2,iModel), title(models{iModel}),hold on
   for iClass = 2:size(plot_data,2)
     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
     xlim([datenum(dates(1)), datenum(dates(end))])
@@ -133,14 +133,14 @@ legend(groups)
 
 %-------------------------------------------------------
 figure(7), clf, hold on, title('Holding times'), xlabel('Regularization factor')
-plot(outCome.Models.MV.lambda, outCome.Models.TF.htime*ones(length(outCome.Models.MV.htime),1))
+plot(outCome.Models.MVRP.lambda, outCome.Models.TF.htime*ones(length(outCome.Models.MVRP.htime),1))
 for iModel = 2:numel(models);
   plot(outCome.Models.(models{iModel}).lambda, outCome.Models.(models{iModel}).htime);
 end
 legend(models)
 
 figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
-plot(outCome.Models.MV.lambda, outCome.Models.TF.sharpe*ones(length(outCome.Models.MV.sharpe),1))
+plot(outCome.Models.MVRP.lambda, outCome.Models.TF.sharpe*ones(length(outCome.Models.MVRP.sharpe),1))
 for iModel = 2:numel(models);
   plot(outCome.Models.(models{iModel}).lambda, outCome.Models.(models{iModel}).sharpe);
 end
@@ -151,7 +151,7 @@ figure(9), clf, hold on, title('Sharpe(cost) for "best" \lambda')
 costs = 0:0.01:0.2;
 for iModel = 1:numel(models);
   sharpe = sharpeOfCost(outCome, models{iModel}, costs, Open, Close);
-  subplot(2,2,iModel), hold on, title(models{iModel})
+  subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
   plot(costs, sharpe)
   %legend(sprintf) lambda
   ylim([-.5 1.5])

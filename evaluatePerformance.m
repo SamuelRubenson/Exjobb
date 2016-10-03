@@ -1,4 +1,4 @@
-function [ output ] = evaluatePerformance(Open, High, Low, Close, Config, varargin)
+function [ output ] = evaluatePerformance(Open, High, Low, Close, Config, assetClasses, varargin)
 p = inputParser;
 p.CaseSensitive = false;
 
@@ -9,13 +9,15 @@ addRequired(p, 'High', @isnumeric);
 addRequired(p, 'Low', @isnumeric);
 addRequired(p, 'Close', @isnumeric);
 addRequired(p, 'Config', @(A)isa(A,'struct'));
+addRequired(p, 'assetClasses', @iscell);
 addParameter(p,'TF_ema', default)
 addParameter(p,'MV', default)
 addParameter(p,'RP', default)
 addParameter(p,'RPmod', default)
+addParameter(p,'MVRP', default)
 addParameter(p,'LES', default)
 
-parse(p,Open, High, Low, Close, Config, varargin{:});
+parse(p,Open, High, Low, Close, Config, assetClasses, varargin{:});
 
 [T, nMarkets] = size(Close);
 output = struct('General', struct, 'Models',struct);
@@ -29,15 +31,19 @@ if isa(p.Results.TF_ema, 'struct')
 end
 
 if isa(p.Results.MV, 'struct')
-  runMV(p.Results.MV);
+  runModel('MV', p.Results.MV);
 end
 
 if isa(p.Results.RP, 'struct')
-  runRP(p.Results.RP)
+  runModel('RP', p.Results.RP)
 end
 
 if isa(p.Results.RPmod, 'struct')
-  runRPMOD(p.Results.RPmod)
+  runModel('RPmod', p.Results.RPmod)
+end
+
+if isa(p.Results.MVRP, 'struct')
+  runModel('MVRP', p.Results.MVRP)
 end
 
 
@@ -63,40 +69,24 @@ end
 
 %---------------------------------------------------------------------------
 
-  function [] = runMV(params)
-    disp('Processing MV-model...')
+  function [] = runModel(model, params)
+    fprintf('Processing %s-model...\n',model)
     sharpe=[]; equityCurve=[]; pos=[]; htime = [];
     for lambda = params.lambda
-      ipos = getMVpos(TF_pos, corrMat, lambda, Config.target_volatility);
+      switch model
+        case 'MV'
+          ipos = getMVpos(TF_pos, corrMat, Config.target_volatility, lambda);
+        case 'RP'
+          ipos = getRPpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
+        case 'RPmod'
+          ipos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
+        case 'MVRP'
+          ipos = getMVRPpos( TF_pos, corrMat, assetClasses,  Config.target_volatility, lambda, params.lambdaRP);
+      end
       [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
       sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht];
     end
-    output.Models.MV = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'lambda', params.lambda);
-  end
-
-%--------------------------------------------------------------------------
-
-  function [] = runRP(params)
-    disp('Processing RP-model...')
-    sharpe=[]; equityCurve=[]; pos=[]; htime = [];
-    for lambda = params.lambda
-      ipos = getRPpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
-      [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-      sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht];
-    end
-    output.Models.RP = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'lambda', params.lambda);
-  end
-%--------------------------------------------------------------------------
-
-  function [] = runRPMOD(params)
-    disp('Processing RPmod-model...')
-    sharpe=[]; equityCurve=[]; pos=[]; htime = [];
-    for lambda = params.lambda
-      ipos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
-      [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-      sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht];
-    end
-    output.Models.RPmod = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'lambda', params.lambda);
+    output.Models.(model) = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'lambda', params.lambda);
   end
 
 %--------------------------------------------------------------------------
