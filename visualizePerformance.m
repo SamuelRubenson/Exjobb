@@ -12,6 +12,8 @@ colors =[      0,    0.4470,    0.7410;
 models = fieldnames(outCome.Models);
 sharpe_ratios = zeros(length(models), 1);
 drawdowns = zeros(numel(dates), length(models));
+eqCurves = zeros(numel(dates), length(models));
+htimes = zeros(numel(models),1);
 
 figure(1), clf
 for iModel = 1:length(models);
@@ -19,7 +21,9 @@ for iModel = 1:length(models);
   sharpe_ratios(iModel) = model_data.sharpe;
   figure(1), hold on
   plot(dates, model_data.equityCurve)
+  eqCurves(:,iModel) = model_data.equityCurve;
   drawdowns(:,iModel) = model_data.equityCurve-cummax(model_data.equityCurve);
+  htimes(iModel) = model_data.htime;
   hold off
 end
 figure(1), title('Equity curve'), legend(models)
@@ -44,7 +48,7 @@ for iModel=1:length(models)
   data(isnan(data)) = 0;
   norm_data = sum(abs(data'),2); norm_data(norm_data==0) = 1;%to avoid NaN
   plot_data = [zeros(size(data',1),1), cumsum(abs(data')./repmat(norm_data,1,length(groups)),2)];
-  subplot(2,2,iModel), title(models{iModel}),hold on
+  subplot(ceil(numel(models)/2),2,iModel), title(models{iModel}),hold on
   for iClass = 2:size(plot_data,2)
     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
     xlim([datenum(dates(1)), datenum(dates(end))])
@@ -70,7 +74,7 @@ for iModel = 1:length(models)
   data(isnan(data)) = 0;
   norm_data = sum((data'),2); norm_data(norm_data==0) = 1; %to avoid NaN
   plot_data = [zeros(size(data',1),1), cumsum((data')./repmat(norm_data,1,length(groups)),2)];
-  subplot(2,2,iModel), title(models{iModel}),hold on
+  subplot(ceil(numel(models)/2),2,iModel), title(models{iModel}),hold on
   for iClass = 2:size(plot_data,2)
     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
     xlim([datenum(dates(1)), datenum(dates(end))])
@@ -92,7 +96,7 @@ figure(5), clf
 for iModel = 1:length(models)
    meanVarModel = nanmean((outCome.Models.(models{iModel}).pos).^2,1);
    ratios = meanVarModel./meanVarTF;
-   subplot(2,2,iModel), hold on, title(models{iModel})
+   subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
    bar(ratios/mean(ratios)); %how to scale?
 end
 
@@ -105,13 +109,10 @@ for iModel = 1:length(models)
    [meanVarModel, groups] = grpstats(NansumNan((outCome.Models.(models{iModel}).pos)'.^2,2),...
      assetClasses',{'sum', 'gname'});
    ratios = meanVarModel./meanVarTF;
-   subplot(2,2,iModel);
+   subplot(ceil(numel(models)/2),2,iModel);
    bar(ratios/mean(ratios));
    set(gca,'xtick', 1:length(groups),'xticklabel', groups)
 end
-% 
-% 
-% %-----------------------------------------
 
 
 rollingSharpes = []; years = 1;
@@ -134,6 +135,20 @@ xlim([datenum(dates(1)), datenum(dates(end))])
 ylim([-1.75,1.75])
 dynamicDateTicks()
 end
+
+
+%---------------------- Model-CORR
+
+rev = diff(eqCurves,1);
+%ind = all(~isnan(rev),2);
+corrplot(rev, 'rows', 'complete', 'varname', models)
+
+% ----------------------------
+
+figure(9), clf, hold on, title('Holding time')
+bar(htimes)
+set(gca,'xtick', 1:length(models),'xticklabel', models)
+
 
   
   
