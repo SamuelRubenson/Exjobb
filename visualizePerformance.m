@@ -11,6 +11,7 @@ colors =[      0,    0.4470,    0.7410;
 %for i = 1:3, figure(i), clf; end
 models = fieldnames(outCome.Models);
 sharpe_ratios = zeros(length(models), 1);
+sharpe_index = zeros(length(models), 1);
 drawdowns = zeros(numel(dates), length(models));
 eqCurves = zeros(numel(dates), length(models));
 htimes = zeros(numel(models),1);
@@ -18,12 +19,11 @@ htimes = zeros(numel(models),1);
 figure(1), clf
 for iModel = 1:length(models);
   model_data = outCome.Models.(models{iModel});
-  sharpe_ratios(iModel) = model_data.sharpe;
+  [sharpe_ratios(iModel), sharpe_index(iModel)] = max(model_data.sharpe);
   figure(1), hold on
-  plot(dates, model_data.equityCurve)
-  eqCurves(:,iModel) = model_data.equityCurve;
-  drawdowns(:,iModel) = model_data.equityCurve-cummax(model_data.equityCurve);
-  htimes(iModel) = model_data.htime;
+  plot(dates, model_data.equityCurve(:,sharpe_index(iModel)))
+  eqCurves(:,iModel) = model_data.equityCurve(:,sharpe_index(iModel));
+  drawdowns(:,iModel) = model_data.equityCurve(:,sharpe_index(iModel))-cummax(model_data.equityCurve(:,sharpe_index(iModel)));
   hold off
 end
 figure(1), title('Equity curve'), legend(models)
@@ -43,7 +43,7 @@ ylabel('Sharpe Ratio')
 
 figure(3), clf
 for iModel=1:length(models)
-  model_pos = outCome.Models.(models{iModel}).pos;
+  model_pos = outCome.Models.(models{iModel}).pos(:,:,sharpe_index(iModel));
   [data,groups] = grpstats(abs(model_pos'),assetClasses',{'sum', 'gname'});
   data(isnan(data)) = 0;
   norm_data = sum(abs(data'),2); norm_data(norm_data==0) = 1;%to avoid NaN
@@ -62,7 +62,7 @@ legend(groups)
 Q = outCome.General.corr;
 figure(4), clf
 for iModel = 1:length(models)
-  model_pos = outCome.Models.(models{iModel}).pos;
+  model_pos = outCome.Models.(models{iModel}).pos(:,:,sharpe_index(iModel));
   risk_contributions = nan(size(model_pos));
   for it = 1:size(model_pos,1)
     Qt = Q(:,:,it);
@@ -91,28 +91,28 @@ legend(groups)
 
 %./repmat(NansumNan(abs(outCome.Models.TF.pos),2),1,nMarkets)
 %./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
-meanVarTF = nanmean((outCome.Models.TF.pos).^2,1);
-figure(5), clf
-for iModel = 1:length(models)
-   meanVarModel = nanmean((outCome.Models.(models{iModel}).pos).^2,1);
-   ratios = meanVarModel./meanVarTF;
-   subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
-   bar(ratios/mean(ratios)); %how to scale?
-end
-
-
-%./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
-[meanVarTF, groups] = grpstats(NansumNan((outCome.Models.TF.pos)'.^2,2),...
-  assetClasses',{'sum', 'gname'}); 
-figure(6), clf
-for iModel = 1:length(models)
-   [meanVarModel, groups] = grpstats(NansumNan((outCome.Models.(models{iModel}).pos)'.^2,2),...
-     assetClasses',{'sum', 'gname'});
-   ratios = meanVarModel./meanVarTF;
-   subplot(ceil(numel(models)/2),2,iModel);
-   bar(ratios/mean(ratios));
-   set(gca,'xtick', 1:length(groups),'xticklabel', groups)
-end
+% meanVarTF = nanmean(abs(outCome.Models.TF.pos),1);
+% figure(5), clf
+% for iModel = 1:length(models)
+%    meanVarModel = nanmean(abs(outCome.Models.(models{iModel}).pos),1);
+%    ratios = meanVarModel./meanVarTF;
+%    subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
+%    bar(ratios/mean(ratios)); %how to scale?
+% end
+% 
+% 
+% %./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
+% [meanVarTF, groups] = grpstats(NansumNan(abs(outCome.Models.TF.pos)',2),...
+%   assetClasses',{'sum', 'gname'}); 
+% figure(6), clf
+% for iModel = 1:length(models)
+%    [meanVarModel, groups] = grpstats(NansumNan(abs(outCome.Models.(models{iModel}).pos)',2),...
+%      assetClasses',{'sum', 'gname'});
+%    ratios = meanVarModel./meanVarTF;
+%    subplot(ceil(numel(models)/2),2,iModel);
+%    bar(ratios/mean(ratios));
+%    set(gca,'xtick', 1:length(groups),'xticklabel', groups)
+% end
 
 
 rollingSharpes = []; years = 1;
@@ -145,9 +145,16 @@ corrplot(rev, 'rows', 'complete', 'varname', models)
 
 % ----------------------------
 
-figure(9), clf, hold on, title('Holding time')
-bar(htimes)
-set(gca,'xtick', 1:length(models),'xticklabel', models)
+
+figure(7), clf, hold on, title('Holding times'), xlabel('beta')
+plot(outCome.Models.LES.beta, outCome.Models.TF.htime*ones(length(outCome.Models.LES.htime),1))
+plot(outCome.Models.LES.beta, outCome.Models.LES.htime);
+legend(models)
+
+figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
+plot(outCome.Models.LES.beta, outCome.Models.TF.sharpe*ones(length(outCome.Models.LES.sharpe),1))
+plot(outCome.Models.LES.beta, outCome.Models.LES.sharpe);
+legend(models)
 
 
   

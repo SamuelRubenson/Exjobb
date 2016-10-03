@@ -91,9 +91,13 @@ end
 
   function [] = runLES(params)
     disp('Processing LES-model...')
-    pos = getLESpos(dZ, TF_pos, corrMat, params.lookBack, Config.target_volatility, params.beta);
-    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    output.Models.LES = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
+    sharpe=[]; equityCurve=[]; pos=[]; htime = [];
+    for beta = params.beta
+      ipos = getLESpos(dZ, TF_pos, corrMat, params.lookBack, Config.target_volatility, beta);
+      [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht];
+    end
+    output.Models.LES = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'beta', params.beta);
   end
 
 %--------------------------------------------------------------------------
