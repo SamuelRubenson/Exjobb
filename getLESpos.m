@@ -1,5 +1,5 @@
 function [pos] = getLESpos( dZ, signals, corrMat, lookBack,  target_volatility, beta )
-
+lookBack
 [T,N] = size(signals);
 
 options = optimoptions('linprog','Algorithm','dual-simplex', 'Display', 'off');

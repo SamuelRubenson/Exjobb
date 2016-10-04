@@ -147,17 +147,40 @@ corrplot(rev, 'rows', 'complete', 'varname', models)
 
 
 figure(7), clf, hold on, title('Holding times'), xlabel('beta')
-plot(outCome.Models.LES.beta, outCome.Models.TF.htime*ones(length(outCome.Models.LES.htime),1))
-plot(outCome.Models.LES.beta, outCome.Models.LES.htime);
+plot(outCome.Models.LES.lookBack, outCome.Models.TF.htime*ones(length(outCome.Models.LES.htime),1))
+plot(outCome.Models.LES.lookBack, outCome.Models.LES.htime);
 legend(models)
 
 figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
-plot(outCome.Models.LES.beta, outCome.Models.TF.sharpe*ones(length(outCome.Models.LES.sharpe),1))
-plot(outCome.Models.LES.beta, outCome.Models.LES.sharpe);
+plot(outCome.Models.LES.lookBack, outCome.Models.TF.sharpe*ones(length(outCome.Models.LES.sharpe),1))
+plot(outCome.Models.LES.lookBack, outCome.Models.LES.sharpe);
 legend(models)
 
 
-  
+figure(9), clf, hold on, title('Mean drawdown')
+plot(outCome.Models.LES.lookBack, nanmean(drawdowns(:,1))*ones(length(outCome.Models.LES.lookBack),1))
+draw = [];
+for iModel = 2:numel(models)
+  draw = [draw, nanmean(outCome.Models.(models{iModel}).equityCurve-cummax(outCome.Models.(models{iModel}).equityCurve,1),1)'];
+end
+plot(outCome.Models.LES.lookBack, draw)
+xlabel('\lambda')
+legend(models)
+
+
+figure(10), clf, hold on, title('Quantile drawdown')
+sd = sort(drawdowns(:,1));
+plot(outCome.Models.LES.lookBack, sd(5)*ones(length(outCome.Models.LES.lookBack),1))
+draw = outCome.Models.(models{iModel}).equityCurve-cummax(outCome.Models.(models{iModel}).equityCurve,1);
+val = [];
+for i = 1:size(draw,2)
+  data = draw(:,i);
+  sd = sort(data(~isnan(data)));
+  val = [val; sd(5)];
+end
+plot(outCome.Models.LES.lookBack, val)
+xlabel('\lambda')
+legend(models)
   
 end
 
