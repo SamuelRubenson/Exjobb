@@ -133,14 +133,14 @@ legend(groups)
 
 %-------------------------------------------------------
 figure(7), clf, hold on, title('Holding times'), xlabel('Regularization factor')
-plot(outCome.Models.MVRP.lambda, outCome.Models.TF.htime*ones(length(outCome.Models.MVRP.htime),1))
+plot(outCome.Models.MV.lambda, outCome.Models.TF.htime*ones(length(outCome.Models.MV.htime),1))
 for iModel = 2:numel(models);
   plot(outCome.Models.(models{iModel}).lambda, outCome.Models.(models{iModel}).htime);
 end
 legend(models)
 
 figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
-plot(outCome.Models.MVRP.lambda, outCome.Models.TF.sharpe*ones(length(outCome.Models.MVRP.sharpe),1))
+plot(outCome.Models.MV.lambda, outCome.Models.TF.sharpe*ones(length(outCome.Models.MV.sharpe),1))
 for iModel = 2:numel(models);
   plot(outCome.Models.(models{iModel}).lambda, outCome.Models.(models{iModel}).sharpe);
 end
@@ -157,10 +157,15 @@ for iModel = 1:numel(models);
   ylim([-.5 1.5])
 end
 
-
-
-
-
+figure(10), clf, hold on, title('Mean drawdown')
+plot(outCome.Models.MV.lambda, nanmean(drawdowns(:,1))*ones(length(outCome.Models.MV.lambda),1))
+draw = [];
+for iModel = 2:numel(models)
+  draw = [draw, nanmean(outCome.Models.(models{iModel}).equityCurve-cummax(outCome.Models.(models{iModel}).equityCurve,1),1)'];
+end
+plot(outCome.Models.MV.lambda, draw)
+xlabel('\lambda')
+legend(models)
 
   
   
