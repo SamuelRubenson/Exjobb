@@ -111,24 +111,30 @@ for iModel = 1:length(models)
 end
 % 
 % 
-% %----------------------------------------- Average corr
-% 
-Q = outCome.General.corr;
-Q_mean = mean(nanmean(Q,3),2);
-figure(7), clf
-bar(Q_mean)
+% %-----------------------------------------
 
-  %------------------------------------------------------
-  Q = outCome.General.corr;
-  minEig = nan(size(Q,3),nMarkets);
-  for t = 1:size(Q,3)
-    Qt = Q(:,:,t);
-    activeI = logical(any(Qt));
-    if ~any(activeI), continue; end
-    minEig(t,activeI) = eig(Qt(activeI,activeI));
-  end
-  figure()
-  plot(minEig)
+
+rollingSharpes = []; years = 1;
+figure(7), clf, hold on
+for iModel = 1:numel(models)
+  rollS = rollSharpe(outCome.Models.(models{iModel}).rev, years);
+  rollingSharpes = [rollingSharpes, rollS(:)];
+end
+
+n = numel(models); 
+for iModel = 1:n
+if iModel<2 || iModel >2
+subplot(ceil((n-1)/2),2,double(iModel - (iModel>2))), title(sprintf('%s vs MV, Rolling %d-year Sharpe',models{iModel}, years))
+difff = (rollingSharpes(:,iModel)-rollingSharpes(:,2));
+lower = difff.*(difff<=0); lower(isnan(lower)) = 0;
+upper = difff.*(difff>0); upper(isnan(upper)) = 0;
+jbfill(datenum(dates)',zeros(numel(dates),1)',lower','r');
+jbfill(datenum(dates)', upper', zeros(numel(dates),1)', 'g');
+xlim([datenum(dates(1)), datenum(dates(end))])
+ylim([-1.75,1.75])
+dynamicDateTicks()
+end
+
   
   
 end

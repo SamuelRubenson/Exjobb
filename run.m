@@ -19,10 +19,10 @@ TF = {'TF_ema', TF_ema_Params};
 MV_Params = struct('lambda', 0.5);
 MV = {'MV', MV_Params};
 
-RP_Params = struct('lambda', 0.25, 'regCoeffs', 10^10);
+RP_Params = struct('lambda', 0.5, 'regCoeffs', 10^10);
 RP = {'RP', RP_Params};
 
-RPmod_Params = struct('lambda', 0.25, 'regCoeffs', 10^10);
+RPmod_Params = struct('lambda', 0.5, 'regCoeffs', 10^10);
 RPM = {'RPmod', RPmod_Params};
 
 outCome = evaluatePerformance(Open, High, Low, Close, Config, TF{:}, MV{:}, RP{:}, RPM{:});

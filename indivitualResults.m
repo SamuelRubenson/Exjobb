@@ -1,4 +1,4 @@
-  function [sharpe, equityCurve, htime] = indivitualResults(pos, cost, Open, Close, sigma_t, riskAdjust)
+  function [sharpe, equityCurve, htime, ret] = indivitualResults(pos, cost, Open, Close, sigma_t, riskAdjust)
     if ~exist('riskAdjust','var'), riskAdjust = false; end
     
     nMarkets = size(pos,2);
