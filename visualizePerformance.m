@@ -89,34 +89,58 @@ legend(groups)
 
 %------- Variance in markets compared to TF
 
-%./repmat(NansumNan(abs(outCome.Models.TF.pos),2),1,nMarkets)
+% ./repmat(NansumNan(abs(outCome.Models.TF.pos),2),1,nMarkets)
+% ./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
+meanVarTF = nanmean(abs(outCome.Models.TF.pos),1);
+figure(5), clf
+for iModel = 1:length(models)
+   meanVarModel = nanmean(abs(outCome.Models.(models{iModel}).pos),1);
+   ratios = meanVarModel./meanVarTF;
+   subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
+   bar(ratios/mean(ratios)); %how to scale?
+end
+
+
 %./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
-% meanVarTF = nanmean(abs(outCome.Models.TF.pos),1);
-% figure(5), clf
-% for iModel = 1:length(models)
-%    meanVarModel = nanmean(abs(outCome.Models.(models{iModel}).pos),1);
-%    ratios = meanVarModel./meanVarTF;
-%    subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
-%    bar(ratios/mean(ratios)); %how to scale?
-% end
+[meanVarTF, groups] = grpstats(NansumNan(abs(outCome.Models.TF.pos)',2),...
+  assetClasses',{'sum', 'gname'}); 
+figure(6), clf
+for iModel = 1:length(models)
+   [meanVarModel, groups] = grpstats(NansumNan(abs(outCome.Models.(models{iModel}).pos)',2),...
+     assetClasses',{'sum', 'gname'});
+   ratios = meanVarModel./meanVarTF;
+   subplot(ceil(numel(models)/2),2,iModel);
+   bar(ratios/mean(ratios));
+   set(gca,'xtick', 1:length(groups),'xticklabel', groups)
+end
+
 % 
 % 
-% %./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
-% [meanVarTF, groups] = grpstats(NansumNan(abs(outCome.Models.TF.pos)',2),...
-%   assetClasses',{'sum', 'gname'}); 
-% figure(6), clf
-% for iModel = 1:length(models)
-%    [meanVarModel, groups] = grpstats(NansumNan(abs(outCome.Models.(models{iModel}).pos)',2),...
-%      assetClasses',{'sum', 'gname'});
-%    ratios = meanVarModel./meanVarTF;
-%    subplot(ceil(numel(models)/2),2,iModel);
-%    bar(ratios/mean(ratios));
-%    set(gca,'xtick', 1:length(groups),'xticklabel', groups)
+% 
+% figure(7), clf, hold on, title('Holding times'), xlabel('beta')
+% plot(outCome.Models.LES.lookBack, outCome.Models.TF.htime*ones(length(outCome.Models.LES.htime),1))
+% plot(outCome.Models.LES.lookBack, outCome.Models.LES.htime);
+% legend(models)
+% 
+% figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
+% plot(outCome.Models.LES.lookBack, outCome.Models.TF.sharpe*ones(length(outCome.Models.LES.sharpe),1))
+% plot(outCome.Models.LES.lookBack, outCome.Models.LES.sharpe);
+% legend(models)
+% 
+% 
+% figure(9), clf, hold on, title('Mean drawdown')
+% plot(outCome.Models.LES.lookBack, nanmean(drawdowns(:,1))*ones(length(outCome.Models.LES.lookBack),1))
+% draw = [];
+% for iModel = 2:numel(models)
+%   draw = [draw, nanmean(outCome.Models.(models{iModel}).equityCurve-cummax(outCome.Models.(models{iModel}).equityCurve,1),1)'];
 % end
+% plot(outCome.Models.LES.lookBack, draw)
+% xlabel('\lambda')
+% legend(models)
 
 
-rollingSharpes = []; years = 1;
-figure(7), clf, hold on
+rollingSharpes = []; years = 1; compareTo = 2;
+figure(10), clf, hold on
 for iModel = 1:numel(models)
   rollS = rollSharpe(outCome.Models.(models{iModel}).rev, years);
   rollingSharpes = [rollingSharpes, rollS(:)];
@@ -124,9 +148,9 @@ end
 
 n = numel(models); 
 for iModel = 1:n
-if iModel<2 || iModel >2
-subplot(ceil((n-1)/2),2,double(iModel - (iModel>2))), title(sprintf('%s vs MV, Rolling %d-year Sharpe',models{iModel}, years))
-difff = (rollingSharpes(:,iModel)-rollingSharpes(:,2));
+if iModel~=compareTo;
+subplot(ceil((n-1)/2),2,double(iModel - (iModel>compareTo))), title(sprintf('%s vs %s, Rolling %d-year Sharpe',models{iModel}, models{compareTo}, years))
+difff = (rollingSharpes(:,iModel)-rollingSharpes(:,compareTo));
 lower = difff.*(difff<=0); lower(isnan(lower)) = 0;
 upper = difff.*(difff>0); upper(isnan(upper)) = 0;
 jbfill(datenum(dates)',zeros(numel(dates),1)',lower','r');
@@ -134,7 +158,17 @@ jbfill(datenum(dates)', upper', zeros(numel(dates),1)', 'g');
 xlim([datenum(dates(1)), datenum(dates(end))])
 ylim([-1.75,1.75])
 dynamicDateTicks()
+ylabel('Rolling Sharp difference')
 end
+end
+
+tmp = [];
+for iModel = 1:numel(models)
+  tmp = [tmp; sparsness(outCome.Models.(models{iModel}).pos, 5)];
+end
+figure(), bar(tmp), set(gca,'xtick', 1:length(models),'xticklabel', models)
+
+
 
 
 %---------------------- Model-CORR
@@ -144,43 +178,22 @@ rev = diff(eqCurves,1);
 corrplot(rev, 'rows', 'complete', 'varname', models)
 
 % ----------------------------
-
-
-figure(7), clf, hold on, title('Holding times'), xlabel('beta')
-plot(outCome.Models.LES.lookBack, outCome.Models.TF.htime*ones(length(outCome.Models.LES.htime),1))
-plot(outCome.Models.LES.lookBack, outCome.Models.LES.htime);
-legend(models)
-
-figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
-plot(outCome.Models.LES.lookBack, outCome.Models.TF.sharpe*ones(length(outCome.Models.LES.sharpe),1))
-plot(outCome.Models.LES.lookBack, outCome.Models.LES.sharpe);
-legend(models)
-
-
-figure(9), clf, hold on, title('Mean drawdown')
-plot(outCome.Models.LES.lookBack, nanmean(drawdowns(:,1))*ones(length(outCome.Models.LES.lookBack),1))
-draw = [];
-for iModel = 2:numel(models)
-  draw = [draw, nanmean(outCome.Models.(models{iModel}).equityCurve-cummax(outCome.Models.(models{iModel}).equityCurve,1),1)'];
-end
-plot(outCome.Models.LES.lookBack, draw)
-xlabel('\lambda')
-legend(models)
-
-
-figure(10), clf, hold on, title('Quantile drawdown')
-sd = sort(drawdowns(:,1));
-plot(outCome.Models.LES.lookBack, sd(5)*ones(length(outCome.Models.LES.lookBack),1))
-draw = outCome.Models.(models{iModel}).equityCurve-cummax(outCome.Models.(models{iModel}).equityCurve,1);
-val = [];
-for i = 1:size(draw,2)
-  data = draw(:,i);
-  sd = sort(data(~isnan(data)));
-  val = [val; sd(5)];
-end
-plot(outCome.Models.LES.lookBack, val)
-xlabel('\lambda')
-legend(models)
   
+
+
+% figure(10), clf, hold on, title('Quantile drawdown')
+% sd = sort(drawdowns(:,1));
+% plot(outCome.Models.LES.lookBack, sd(5)*ones(length(outCome.Models.LES.lookBack),1))
+% draw = outCome.Models.(models{iModel}).equityCurve-cummax(outCome.Models.(models{iModel}).equityCurve,1);
+% val = [];
+% for i = 1:size(draw,2)
+%   data = draw(:,i);
+%   sd = sort(data(~isnan(data)));
+%   val = [val; sd(5)];
+% end
+% plot(outCome.Models.LES.lookBack, val)
+% xlabel('\lambda')
+% legend(models)
+
 end
 

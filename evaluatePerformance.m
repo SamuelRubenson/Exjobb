@@ -16,6 +16,7 @@ addParameter(p,'RP', default)
 addParameter(p,'RPmod', default)
 addParameter(p,'MVRP', default)
 addParameter(p,'LES', default)
+addParameter(p,'RPLES', default)
 
 parse(p,Open, High, Low, Close, Config, assetClasses, varargin{:});
 
@@ -50,6 +51,10 @@ if isa(p.Results.LES, 'struct')
   runLES(p.Results.LES)
 end
 
+if isa(p.Results.RPLES, 'struct')
+  runRPLES(p.Results.RPLES)
+end
+
 %---------------------------------------------------------------------------
   
   function [dZ, yz, corrMat_tm1] = initialize()
@@ -73,10 +78,10 @@ end
 %---------------------------------------------------------------------------
 
   function [] = runModel(model, params)
-    fprintf('Processing %s-model...',model)
+    fprintf('Processing %s-model...\n',model)
     switch model
       case 'MV'
-        pos = getMVpos(TF_pos, corrMat, params.lambda, Config.target_volatility);
+        pos = getMVpos(TF_pos, corrMat, Config.target_volatility, params.lambda);
       case 'RP'
         pos = getRPpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
       case 'RPmod'
@@ -91,18 +96,31 @@ end
 
   function [] = runLES(params)
     disp('Processing LES-model...')
-    sharpe=[]; equityCurve=[]; pos=[]; htime = [];
+    sharpe=[]; equityCurve=[]; pos=[]; htime = []; rev = [];
     for beta = params.beta
       for lookBack = params.lookBack
         ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
-        [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-        sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht];
+        %ipos = getTESTpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
+        [sh, eq, ht, r] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+        sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht]; rev = [rev, r(:)];
       end
     end
-    output.Models.LES = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack);
+    output.Models.LES = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'rev', rev);
   end
 
 %--------------------------------------------------------------------------
+
+  function [] = runRPLES(params)
+    disp('Processing RPLES-model...')
+    pos = (output.Models.RPmod.pos + output.Models.LES.pos);
+    Q = corrMat;
+    for t = 1:T
+      activeI = logical(any(Q(:,:,t)).*(~isnan(pos(t,:))));
+      pos(t,activeI) = pos(t,activeI)*Config.target_volatility/sqrt(pos(t,activeI)*Q(activeI,activeI,t)*pos(t,activeI)');
+    end
+    [sharpe, equityCurve, htime, rev] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+    output.Models.RPLES = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'rev', rev);
+  end
 
 end
 
