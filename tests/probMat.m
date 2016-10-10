@@ -1,25 +1,47 @@
-function V = probMat(X)% = outCome.General.dZ(7000:end,1:9);
+function Y = probMat(X, nPoints)% = outCome.General.dZ(7000:end,1:9);
+
+
 
 [T,N] = size(X);
-U = nan(T,N);
+% U = nan(T,N);
+
+F = zeros(T,N);
+
 
 for iN = 1:N
-  [f,x] = ecdf(X(:,iN));
-  for t = 1:T
-    if ~isnan(X(t,iN))
-      U(t,iN) = f(find(x>=X(t,iN), 1, 'first'));
-    end
-  end
+  F(:,iN) = ksdensity(X(:,iN),X(:,iN),'function','cdf');
 end
 
-q = 0.1;
+% for iN = 1:N
+%   [f,x] = ecdf(X(:,iN));
+%   for t = 1:T
+%     if ~isnan(X(t,iN))
+%       U(t,iN) = f(find(x>=X(t,iN), 1, 'first'));
+%     end
+%   end
+% end
+% U(U==0) = 1e-10; U(U==1) = 1-1e-10;
 
-V = nan(N,N);
+[Rho,nu] = copulafit('t',F,'Method','ApproximateML');
+Y_u = copularnd('t', Rho, nu, nPoints);
 
-for i =1:N
-  for j = 1:N
-    V(i,j) = nanmean( (U(:,i)<=q).*(U(:,j)<=q) );
-  end
+Y = zeros(nPoints, N);
+for iN = 1:N
+  Y(:,iN) = ksdensity(X(:,iN),Y_u(:,iN),'function','icdf');
 end
-V = V;
-V = repmat(V,1,1,T);
+
+end
+
+
+
+% q = 0.1;
+% 
+% V = nan(N,N);
+% 
+% for i =1:N
+%   for j = 1:N
+%     V(i,j) = nanmean( (U(:,i)<=q).*(U(:,j)<=q) );
+%   end
+% end
+% V = V;
+% V = repmat(V,1,1,T);
