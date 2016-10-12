@@ -9,20 +9,21 @@ for iN = 1:N
   F(:,iN) = ksdensity(X(:,iN),X(:,iN),'function','cdf');
 end
 [Rho,nu] = copulafit('t',F,'Method','ApproximateML');
-Y_u = copularnd('t', Rho, nu, 10000);
+Y_u = copularnd('t', Rho, nu, 5000);
 
 Y = zeros(size(Y_u));
 for iN = 1:N
   iN
   Y(:,iN) = ksdensity(X(:,iN),Y_u(:,iN),'function','icdf');
 end
-Y = Y.*(abs(Y_u-0.5)>=0.5-0.05); %quantiles
+
+Y2 = Y.*(abs(Y_u-0.5)>=0.5-0.1); %quantiles
 
 
 
 %%
 
-[testPos, times, assets, lookBack] = probMat(outCome, Config ,Y, M);
+[testPos, times, assets, lookBack] = probMat(outCome, Config ,Y2, M);
 
 
 %%
@@ -36,8 +37,22 @@ plot(dates(times), equityCurveTF)
 plot(dates(times),equityCurve)
 
 sRev = sort(diff(equityCurve(~isnan(equityCurve)))); sRevTF = sort(diff(equityCurveTF(~isnan(equityCurveTF))));
-take = 25;
-meanQuatile = [mean(sRev(1:take)), mean(sRevTF(1:take))]
+%take = length(times);
+%meanQuatile = [mean(sRev(1:take)), mean(sRevTF(1:take))]
+figure(2), clf, hold on
+bar(sRev,'r')
+bar(sRevTF)
+
+
+
+
+drawdown = equityCurve-cummax(equityCurve);
+drawdownTF = equityCurveTF-cummax(equityCurveTF);
+figure(3), clf, hold on
+plot(dates(times), drawdownTF)
+plot(dates(times), drawdown)
+
+
 
 
 

@@ -1,12 +1,12 @@
 function [testPos, times, assets, lookBack] = probMat(outCome, Config , Y, M)
 clc
-options = optimoptions('fmincon', 'Display', 'off');
+options = optimoptions('fmincon', 'GradObj','on', 'Display', 'off');
 assets = find(M);
-times = 1:5000;
+times = 1:4000;
 %quantiles = 0.05;
 
-dZ = outCome.General.dZ(times,M);  nPoints = 5000; lookBack = 504;
-signals = outCome.Models.TF.pos(times,assets);
+dZ = outCome.General.dZ(:,M);  nPoints = 5000; lookBack = 504;
+signals = outCome.Models.TF.pos(:,M);
 Q = outCome.General.corr(M,M,:);
 
 testPos = nan(length(times), length(assets));
@@ -37,7 +37,7 @@ if ~any(activeI), continue; end
 %Y = Y.*repmat(sign(s(activeI)), nPoints, 1);
 
 %c = ones(nPoints,1);
-[x, ~, exitflag] = fmincon(@(x) norm(Y(:,activeI)*x,2) , s(activeI)'/norm(s(activeI)), -s(activeI),-1, [], [], [], [], [], options);
+[x, ~, exitflag] = fmincon(@(x) objTest(Y(:,activeI), x) , s(activeI)'/norm(s(activeI)), -s(activeI),-1, [], [], [], [], [], options);
 if exitflag<=0, disp('-------------------------------'); disp(exitflag); end
 %x = fmincon(@(x) norm(Y*x,2) , 0.1*ones(N,1), [],[], ones(1,N), 1, zeros(N,1), []);
 out = nan(length(assets),1);
@@ -46,10 +46,9 @@ testPos(t,:) = out;
 end
 
 
-
-  function [c, ceq] = g(x, Q, s)
-    c = []; %x(:)'*Q*x(:) + 1;
-    ceq=(x(:)'.*sign(s)) * Q * (x(:).*sign(s')) - 10;
+  function [c, ceq] = g(x, Q)
+    c =  x(:)'*Q*x(:) - 10;
+    ceq= [];%(x(:)'.*sign(s)) * Q * (x(:).*sign(s')) - 10;
   end
 
 end
