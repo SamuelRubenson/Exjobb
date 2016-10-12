@@ -1,6 +1,6 @@
-
-M = ~isnan(outCome.General.dZ(7000,:));
-X = outCome.General.dZ(7000:end,M);
+clc
+M = ~isnan(outCome.General.dZ(3000,:));
+X = outCome.General.dZ(8500:end,M);
 
 [T,N] = size(X);
 % U = nan(T,N);
@@ -23,12 +23,12 @@ Y2 = Y.*(abs(Y_u-0.5)>=0.5-0.1); %quantiles
 
 %%
 
-[testPos, times, assets, lookBack] = probMat(outCome, Config ,Y2, M);
+[testPos, times, assets, lookBack] = probMat(outCome, Config, M);
 
 
 %%
 [sharpe, equityCurve, htime, rev] = indivitualResults(testPos, Config.cost, Open(times,assets), Close(times,assets), outCome.General.std(times,assets), Config.riskAdjust);
-TFpos = outCome.Models.TF.pos(times,assets); TFpos(1:lookBack,:) = NaN;
+TFpos = outCome.Models.LES.pos(times,assets); TFpos(1:lookBack,:) = NaN;
 [sharpeTF, equityCurveTF, htimeTF, revTF] = indivitualResults(TFpos, Config.cost, Open(times,assets), Close(times,assets), outCome.General.std(times,assets), Config.riskAdjust);
 
 
@@ -40,8 +40,9 @@ sRev = sort(diff(equityCurve(~isnan(equityCurve)))); sRevTF = sort(diff(equityCu
 %take = length(times);
 %meanQuatile = [mean(sRev(1:take)), mean(sRevTF(1:take))]
 figure(2), clf, hold on
-bar(sRev,'r')
 bar(sRevTF)
+bar(sRev,'r')
+
 
 
 
