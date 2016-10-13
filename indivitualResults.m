@@ -1,4 +1,4 @@
-  function [sharpe, equityCurve, htime, ret] = indivitualResults(pos, cost, Open, Close, sigma_t, riskAdjust)
+  function [sharpe, equityCurve, htime, ret, sharpeParts] = indivitualResults(pos, cost, Open, Close, sigma_t, riskAdjust)
     if ~exist('riskAdjust','var'), riskAdjust = false; end
     
     nMarkets = size(pos,2);
@@ -11,5 +11,6 @@
     ret=NansumNan(REV./sigma_t-cost*TRAD,2);
     
     sharpe=nanmean(ret)/nanstd(ret)*sqrt(252);
+    sharpeParts = [nanmean(ret), nanstd(ret)];
     equityCurve=CumsumNan(ret./nanstd(ret)/sqrt(252)); %% ?
   end
