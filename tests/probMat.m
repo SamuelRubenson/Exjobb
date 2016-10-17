@@ -1,4 +1,4 @@
-function [testPos, times, assets, lookBack] = probMat(outCome, Config , M)
+function [testPos, times, assets, lookBack] = probMat(outCome, Config , Y, M)
 clc
 options = optimoptions('fmincon', 'GradObj','on', 'Display', 'off');
 assets = find(M);
@@ -13,40 +13,41 @@ Q = outCome.General.corr(M,M,:);
 %storeY_u = nan(nPoints, length(assets), length(times));
 
 testPos = nan(length(times), length(assets));
-parfor t = times(lookBack:end)
+for t = times(lookBack:end)
 t
 X = dZ(t-lookBack+1:t,:);
 s = signals(t,:);
 activeI = logical(all(~isnan(X),1).*(~isnan(s)));
 if ~any(activeI), continue; end
 
-X = X(:,activeI);
-[T,N] = size(X);
-% U = nan(T,N);
-F = zeros(T,N);
-for iN = 1:N
-  F(:,iN) = ksdensity(X(:,iN),X(:,iN),'function','cdf');
-end
-[Rho,nu] = copulafit('t',F,'Method','ApproximateML');
-Y_u = copularnd('t', Rho, nu, nPoints);
-
+% X = X(:,activeI);
+% [T,N] = size(X);
+% % U = nan(T,N);
+% F = zeros(T,N);
+% for iN = 1:N
+%   F(:,iN) = ksdensity(X(:,iN),X(:,iN),'function','cdf');
+% end
+% [Rho,nu] = copulafit('t',F,'Method','ApproximateML');
+% Y_u = copularnd('t', Rho, nu, nPoints);
 
 % Y = zeros(size(Y_u));
 % for iN = 1:N
 %   Y(:,iN) = ksdensity(X(:,iN),Y_u(:,iN),'function','icdf');
 % end
-% Y2 = Y.*(abs(Y_u-0.5)>=0.5-quantiles); %quantiles
+% Y = Y.*(abs(Y_u-0.5)>=0.5-quantiles); %quantiles
+
+
 
 %Y = sign(Y_u-0.5).*((Y_u-0.5).^2);
-Y = (Y_u-0.5).*(abs(Y_u-0.5)>=0.5-quantiles)*10; %use
+%Y = (Y_u-0.5).*(abs(Y_u-0.5)>=0.5-quantiles)*10; %use
 %Y = Y.*repmat(sign(s(activeI)), nPoints, 1);
 
 %c = ones(nPoints,1);
 
-[x, ~, exitflag] = fmincon(@(x) objTest(Y, x) , s(activeI)'/norm(s(activeI)), -s(activeI),-1, [], [], [], [], [], options);
-if exitflag<=0, disp('-------------------------------'); disp(exitflag); end
+%[x, ~, exitflag] = fmincon(@(x) objTest(Y(:,activeI), x) , s(activeI)'/norm(s(activeI)), -s(activeI),-1, [], [], [], [], [], options);
+%if exitflag<=0, disp('-------------------------------'); disp(exitflag); end
 %x = fmincon(@(x) norm(Y*x,2) , 0.1*ones(N,1), [],[], ones(1,N), 1, zeros(N,1), []);
-%x = lesADMM(Y, s(activeI));
+x = lesADMM(Y(:,activeI), s(activeI));
 
 out = nan(length(assets),1);
 out(activeI) = x(:)*Config.target_volatility/sqrt(x(:)'*Q(activeI,activeI,t)*x(:)); %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
