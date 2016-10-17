@@ -1,6 +1,6 @@
 
 M = ~isnan(outCome.General.dZ(7000,:));
-X = outCome.General.dZ(7000:end,M);
+X = outCome.General.dZ(7000:8000,M);
 
 [T,N] = size(X);
 % U = nan(T,N);
@@ -16,7 +16,7 @@ for iN = 1:N
   iN
   Y(:,iN) = ksdensity(X(:,iN),Y_u(:,iN),'function','icdf');
 end
-Y = Y.*(abs(Y_u-0.5)>=0.5-0.05); %quantiles
+Y2 = Y.*(abs(Y_u-0.5)>=0.5-0.05); %quantiles
 
 
 
