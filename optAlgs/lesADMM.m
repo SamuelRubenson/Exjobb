@@ -1,20 +1,24 @@
-function [w] = lesADMM(y, q, activeI)
-  beta = 0.6;
-  A = [-ones(q,1), -y(:,activeI), -eye(q)];
-  c = [1; zeros(n,1); 1/(q*(1-beta))*ones(q,1)];
-  w0 = ones(size(c));
+function [w] = lesADMM(Y, signal, c)
+  [nP, nM] = size(Y);
+  A = [-Y, -ones(nP,1)];
+  f = [signal(:); 1];
+  AT = A';
+  ATA = A'*A;
+  %ATAinv = inv(ATA);
   
-  z=w0(:); u=zeros(length(w0),1);  
+  x0 = ones(size(c));
+  z=x0(:); u=zeros(length(x0),1);  
   tol = 10^-4; max_norm = 1;
   rho = 0.5;
   tau = 2; mult = 10;
   
   while max_norm>tol
-    x_new = A\(-c/rho + z - u);
-    x_new(end-q+1:end) = max([x_new(end-q+1:end), zeros(q,1)],[],2);
-    Ax = A*x_new;
-    z_new = max( [Ax+u zeros(size(A,1),1)],[],2);
-    u_new = u + (Ax-z_new);
+    x_new = ATA\(-f/rho + AT*(z-u));
+    %x_new(end-q+1:end) = max([x_new(end-q+1:end), zeros(q,1)],[],2);
+    %Ax = A*x_new;
+    b = -A*x_new - u;
+    z_new = b - 1/rho*(c.*(b>0));
+    u_new = u + (A*x_new - z_new);
     s = norm(rho*(z-z_new));
     r =  norm(u_new-u);
     [rho, u_new] = updateRho(s,r,rho,u_new);

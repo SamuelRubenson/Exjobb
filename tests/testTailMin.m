@@ -13,9 +13,10 @@ Y_u = copularnd('t', Rho, nu, 10000);
 
 Y = zeros(size(Y_u));
 for iN = 1:N
-  iN
   Y(:,iN) = ksdensity(X(:,iN),Y_u(:,iN),'function','icdf');
 end
+
+
 Y2 = Y.*(abs(Y_u-0.5)>=0.5-0.05); %quantiles
 
 

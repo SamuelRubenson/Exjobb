@@ -1,7 +1,7 @@
 dZ = outCome.General.dZ; 
 lookBack = 252;
 [endT, nMarkets] = size(dZ);
-q = 0.025;
+q = 0.01;
 alpha = 1 - 1/120;
 
 tailQ_up = nan(nMarkets, nMarkets, endT);
@@ -24,7 +24,7 @@ for iN = 1:N
   F(:,iN) = ksdensity(X(:,iN),X(:,iN),'function','cdf');
 end
 [Rho,nu] = copulafit('t',F,'Method','ApproximateML');
-Y_u = copularnd('t', Rho, nu, 500);
+Y_u = copularnd('t', Rho, nu, 1000);
 
 Y = zeros(size(Y_u));
 for iN = 1:N
@@ -64,7 +64,7 @@ end
 
 %% rolling est
 
-rolling_est_d = nan(size(tailQ_down)); a = 1-1/10;
+rolling_est_d = nan(size(tailQ_down)); a = 1-1/30;
 for it = 2:endT
   Y_t = tailQ_down(:,:,it);
   C_t = a*rolling_est_d(:,:,it-1) + (1-a)*Y_t;
