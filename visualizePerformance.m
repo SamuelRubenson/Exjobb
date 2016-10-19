@@ -167,14 +167,16 @@ end
 
 
 
-% figure()
-% subplot(1,2,1), hold on, title('Mean')
-% plot(squeeze(rollingParts(:,1,:)))
-% legend(models)
-% subplot(1,2,2), hold on, title('Std')
-% plot(squeeze(rollingParts(:,2,:)))
-% legend(models)
+figure()
+subplot(1,2,1), hold on, title('Mean')
+plot(squeeze(rollingParts(:,1,:)))
+legend(models)
+subplot(1,2,2), hold on, title('Std')
+plot(squeeze(rollingParts(:,2,:)))
+legend(models)
 
+
+parts = {'Mean', 'Std'};
 for i = 1:2
 figure()
 rollingSharpes = rollingParts(:,i,:);
@@ -183,14 +185,16 @@ for iModel = 1:n
 if iModel~=compareTo;
 subplot(ceil((n-1)/2),2,double(iModel - (iModel>compareTo))),
 difff = (rollingSharpes(:,iModel)-rollingSharpes(:,compareTo));
+if i==2, difff=-difff; end
 lower = difff.*(difff<=0); lower(isnan(lower)) = 0;
 upper = difff.*(difff>0); upper(isnan(upper)) = 0;
 jbfill(datenum(dates)',zeros(numel(dates),1)',lower','r');
 jbfill(datenum(dates)', upper', zeros(numel(dates),1)', 'g');
 xlim([datenum(dates(1)), datenum(dates(end))])
 dynamicDateTicks()
-ylabel('Rolling Sharp difference')
-title(sprintf('%s vs %s, Rolling %d-year Sharpe. Integral: %.1f',models{iModel}, models{compareTo}, years, NansumNan(difff)))
+ylabel(sprintf('Rolling %s difference', parts{i}))
+title(sprintf('%s vs %s, Rolling %d-year %s. Integral: %.1f',models{iModel}, models{compareTo}, years, parts{i}, NansumNan(difff)))
+end
 end
 end
 
