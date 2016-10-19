@@ -140,16 +140,18 @@ end
 
 
 rollingSharpes = []; years = 1; compareTo = 2;
+rollingParts = [];
 figure(10), clf, hold on
 for iModel = 1:numel(models)
-  rollS = rollSharpe(outCome.Models.(models{iModel}).rev, years);
+  [rollS, rollP] = rollSharpe(outCome.Models.(models{iModel}).rev, years);
   rollingSharpes = [rollingSharpes, rollS(:)];
+  rollingParts = cat(3,rollingParts, rollP);
 end
 
 n = numel(models); 
 for iModel = 1:n
 if iModel~=compareTo;
-subplot(ceil((n-1)/2),2,double(iModel - (iModel>compareTo))), title(sprintf('%s vs %s, Rolling %d-year Sharpe',models{iModel}, models{compareTo}, years))
+subplot(ceil((n-1)/2),2,double(iModel - (iModel>compareTo))),
 difff = (rollingSharpes(:,iModel)-rollingSharpes(:,compareTo));
 lower = difff.*(difff<=0); lower(isnan(lower)) = 0;
 upper = difff.*(difff>0); upper(isnan(upper)) = 0;
@@ -159,14 +161,39 @@ xlim([datenum(dates(1)), datenum(dates(end))])
 ylim([-1.75,1.75])
 dynamicDateTicks()
 ylabel('Rolling Sharp difference')
+title(sprintf('%s vs %s, Rolling %d-year Sharpe. Integral: %.1f',models{iModel}, models{compareTo}, years, NansumNan(difff)))
 end
 end
 
-tmp = [];
-for iModel = 1:numel(models)
-  tmp = [tmp; sparsness(outCome.Models.(models{iModel}).pos, 5)];
+
+
+% figure()
+% subplot(1,2,1), hold on, title('Mean')
+% plot(squeeze(rollingParts(:,1,:)))
+% legend(models)
+% subplot(1,2,2), hold on, title('Std')
+% plot(squeeze(rollingParts(:,2,:)))
+% legend(models)
+
+for i = 1:2
+figure()
+rollingSharpes = rollingParts(:,i,:);
+n = numel(models); 
+for iModel = 1:n
+if iModel~=compareTo;
+subplot(ceil((n-1)/2),2,double(iModel - (iModel>compareTo))),
+difff = (rollingSharpes(:,iModel)-rollingSharpes(:,compareTo));
+lower = difff.*(difff<=0); lower(isnan(lower)) = 0;
+upper = difff.*(difff>0); upper(isnan(upper)) = 0;
+jbfill(datenum(dates)',zeros(numel(dates),1)',lower','r');
+jbfill(datenum(dates)', upper', zeros(numel(dates),1)', 'g');
+xlim([datenum(dates(1)), datenum(dates(end))])
+dynamicDateTicks()
+ylabel('Rolling Sharp difference')
+title(sprintf('%s vs %s, Rolling %d-year Sharpe. Integral: %.1f',models{iModel}, models{compareTo}, years, NansumNan(difff)))
 end
-figure(), bar(tmp), set(gca,'xtick', 1:length(models),'xticklabel', models)
+end
+
 
 
 
