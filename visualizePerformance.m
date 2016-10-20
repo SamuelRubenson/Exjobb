@@ -24,6 +24,7 @@ for iModel = 1:length(models);
   plot(dates, model_data.equityCurve(:,sharpe_index(iModel)))
   eqCurves(:,iModel) = model_data.equityCurve(:,sharpe_index(iModel));
   drawdowns(:,iModel) = model_data.equityCurve(:,sharpe_index(iModel))-cummax(model_data.equityCurve(:,sharpe_index(iModel)));
+  htimes(iModel) = model_data.htime;
   hold off
 end
 figure(1), title('Equity curve'), legend(models)
@@ -89,30 +90,30 @@ legend(groups)
 
 %------- Variance in markets compared to TF
 
-% ./repmat(NansumNan(abs(outCome.Models.TF.pos),2),1,nMarkets)
-% ./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
-meanVarTF = nanmean(abs(outCome.Models.TF.pos),1);
-figure(5), clf
-for iModel = 1:length(models)
-   meanVarModel = nanmean(abs(outCome.Models.(models{iModel}).pos),1);
-   ratios = meanVarModel./meanVarTF;
-   subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
-   bar(ratios/mean(ratios)); %how to scale?
-end
-
-
-%./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
-[meanVarTF, groups] = grpstats(NansumNan(abs(outCome.Models.TF.pos)',2),...
-  assetClasses',{'sum', 'gname'}); 
-figure(6), clf
-for iModel = 1:length(models)
-   [meanVarModel, groups] = grpstats(NansumNan(abs(outCome.Models.(models{iModel}).pos)',2),...
-     assetClasses',{'sum', 'gname'});
-   ratios = meanVarModel./meanVarTF;
-   subplot(ceil(numel(models)/2),2,iModel);
-   bar(ratios/mean(ratios));
-   set(gca,'xtick', 1:length(groups),'xticklabel', groups)
-end
+% % ./repmat(NansumNan(abs(outCome.Models.TF.pos),2),1,nMarkets)
+% % ./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
+% meanVarTF = nanmean(abs(outCome.Models.TF.pos),1);
+% figure(5), clf
+% for iModel = 1:length(models)
+%    meanVarModel = nanmean(abs(outCome.Models.(models{iModel}).pos),1);
+%    ratios = meanVarModel./meanVarTF;
+%    subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
+%    bar(ratios/mean(ratios)); %how to scale?
+% end
+% 
+% 
+% %./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
+% [meanVarTF, groups] = grpstats(NansumNan(abs(outCome.Models.TF.pos)',2),...
+%   assetClasses',{'sum', 'gname'}); 
+% figure(6), clf
+% for iModel = 1:length(models)
+%    [meanVarModel, groups] = grpstats(NansumNan(abs(outCome.Models.(models{iModel}).pos)',2),...
+%      assetClasses',{'sum', 'gname'});
+%    ratios = meanVarModel./meanVarTF;
+%    subplot(ceil(numel(models)/2),2,iModel);
+%    bar(ratios/mean(ratios));
+%    set(gca,'xtick', 1:length(groups),'xticklabel', groups)
+% end
 
 % 
 % 
@@ -140,17 +141,19 @@ end
 
 
 rollingSharpes = []; years = 1; compareTo = 2;
-rollingParts = [];
+rollingMeans = [];
+rollingSTDs = [];
 figure(10), clf, hold on
 for iModel = 1:numel(models)
-  [rollS, rollP] = rollSharpe(outCome.Models.(models{iModel}).rev, years);
+  [rollS, rollMu, rollStd] = rollSharpe(outCome.Models.(models{iModel}).rev, years);
   rollingSharpes = [rollingSharpes, rollS(:)];
-  rollingParts = cat(3,rollingParts, rollP);
+  rollingMeans = [rollingMeans, rollMu];
+  rollingSTDs = [rollingSTDs, rollStd];
 end
 
-n = numel(models); 
+n = numel(models);
 for iModel = 1:n
-if iModel~=compareTo;
+if iModel~=compareTo
 subplot(ceil((n-1)/2),2,double(iModel - (iModel>compareTo))),
 difff = (rollingSharpes(:,iModel)-rollingSharpes(:,compareTo));
 lower = difff.*(difff<=0); lower(isnan(lower)) = 0;
@@ -169,23 +172,23 @@ end
 
 figure()
 subplot(1,2,1), hold on, title('Mean')
-plot(squeeze(rollingParts(:,1,:)))
+plot(rollingMeans)
 legend(models)
 subplot(1,2,2), hold on, title('Std')
-plot(squeeze(rollingParts(:,2,:)))
+plot(rollingSTDs)
 legend(models)
 
 
-parts = {'Mean', 'Std'};
+parts = {'Mean return', 'Std'}; rollingParts = {rollingMeans, rollingSTDs};
 for i = 1:2
 figure()
-rollingSharpes = rollingParts(:,i,:);
+rollingSharpes = rollingParts{i};
 n = numel(models); 
 for iModel = 1:n
 if iModel~=compareTo;
 subplot(ceil((n-1)/2),2,double(iModel - (iModel>compareTo))),
 difff = (rollingSharpes(:,iModel)-rollingSharpes(:,compareTo));
-if i==2, difff=-difff; end
+%if i==2, difff=-difff; end
 lower = difff.*(difff<=0); lower(isnan(lower)) = 0;
 upper = difff.*(difff>0); upper(isnan(upper)) = 0;
 jbfill(datenum(dates)',zeros(numel(dates),1)',lower','r');
@@ -194,12 +197,14 @@ xlim([datenum(dates(1)), datenum(dates(end))])
 dynamicDateTicks()
 ylabel(sprintf('Rolling %s difference', parts{i}))
 title(sprintf('%s vs %s, Rolling %d-year %s. Integral: %.1f',models{iModel}, models{compareTo}, years, parts{i}, NansumNan(difff)))
+ylim([-(i+1), i+1])
 end
 end
 end
 
 
 
+figure(), hold on, bar(htimes), set(gca,'xtick', 1:length(models),'xticklabel', models)
 
 
 %---------------------- Model-CORR
