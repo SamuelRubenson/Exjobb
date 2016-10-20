@@ -8,9 +8,13 @@ options = optimoptions('linprog','Algorithm','dual-simplex', 'Display', 'off');
 pos = nan(T,N);
 q = lookBack;
 c = ones(q,1);
+alpha = -0.5;
 
-for t = q+1:T
-  
+tmp = sum(~isnan(dZ),2);
+tmp = [tmp(1:q); tmp(1:end-q)];
+
+parfor t = q+1:T
+  %q = 6*tmp(t);
   y = dZ(t-q+1:t,:);
   s = signals(t,:);
   activeI = logical(all(~isnan(y),1).*(~isnan(s)));
@@ -18,7 +22,7 @@ for t = q+1:T
   n = sum(activeI);
   
   A = [-y(:,activeI), -eye(q); -s(activeI), zeros(1,q)];
-  b = [zeros(q, 1); -1];
+  b = [alpha*ones(q, 1); -1];
   lb = [-inf*ones(n,1); zeros(q,1)];
   f = [zeros(n,1); ones(q,1)];
   [opt, fval, exitflag] = linprog(f,A,b,[],[],lb,[], zeros(n,1), options);
