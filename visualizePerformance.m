@@ -34,11 +34,6 @@ bar(sharpe_ratios)
 set(gca,'xtick', 1:length(models),'xticklabel', models)
 ylabel('Sharpe Ratio')
 
-%figure(3), hold on, title('Drawdown'), plot(dates, drawdowns), ylim([1.5*min(min(drawdowns)),0]), legend(models)
-
-%figure(4), clf, hold on
-
-
 
 
 figure(3), clf
