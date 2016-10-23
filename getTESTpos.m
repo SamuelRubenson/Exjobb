@@ -1,24 +1,24 @@
 function [pos] = getTESTpos( dZ, signals, corrMat, lookBack,  target_volatility, beta )
-
+lookBack
 Npoints = 5000;
 
 [T,N] = size(signals);
 
 options = optimoptions('linprog','Algorithm','dual-simplex', 'Display', 'off');
-%options = optimoptions('linprog','Display', 'off');
+options2 = optimoptions('fmincon','Display', 'off','GradObj','on');
 
 pos = nan(T,N);
 q = lookBack;
-alpha = -0.5;
+alpha = beta;
 
 M = ~isnan(dZ(2,:));
-Y = getRandPoints(dZ(2:lookBack,M), Npoints);
+%Y = getRandPoints(dZ(2:lookBack,M), Npoints);
 %Y = getRandPoints(dZ(9200:9452,:), Npoints);
+%Y = dZ(9300-lookBack+1:9300,:);
 
-maxM = sum(M);
+maxM = sum(M); n = 14;
 
 for t = q+1:T
-  if t>2000, continue; end
   t
   M = ~isnan(dZ(t-lookBack+1,:));
   s = signals(t,:);
@@ -26,14 +26,14 @@ for t = q+1:T
   if ~any(activeI), continue; end
   
   if sum(activeI)>maxM % new market
-    Y = getRandPoints(dZ(t-lookBack+1:t,M), Npoints);
-    %Y = dZ(t-lookBack+1:t,M);
+    %Y = getRandPoints(dZ(t-lookBack+1:t,M), Npoints);
+    Y = dZ(t-lookBack+1:t,activeI);
     maxM = sum(activeI);
   else
     nPoints = floor(Npoints/100);
-    y = getRandPoints(dZ(t-lookBack+1:t,M), nPoints);
-    Y = [Y(nPoints+1:end,:); y];
-    %Y = dZ(t-lookBack+1:t,M);
+    %y = getRandPoints(dZ(t-lookBack+1:t,M), nPoints);
+    %Y = [Y(nPoints+1:end,:); y];
+    Y = dZ(t-lookBack+1:t,activeI);
   end
   
   n = sum(activeI);
@@ -43,10 +43,10 @@ for t = q+1:T
 %   lb = [-inf*ones(n,1); zeros(Npoints,1)];
 %   f = [zeros(n,1); ones(Npoints,1)];
   %[opt, fval, exitflag] = linprog(f,A,b,[],[],lb,[], zeros(n,1), options);
+  
   opt = testADMM(Y, s(activeI)', alpha);
   exitflag = (s(activeI)*opt)>0;
-  %opt = fmincon(@(x) x(1) + 1/(q*(1-beta))*sum(max([y(:,activeI)*x(2:end), zeros(q,1)],[],2)),...
-  %  1/n*ones(n+1,1));
+  %[opt, ~, exitflag] = fmincon(@(x)obj(x,Y), s(activeI)', -s(activeI),-1,[],[],[],[],[],options2);
   
   if exitflag>=0
     x = opt(1:n);
@@ -60,5 +60,11 @@ for t = q+1:T
     fprintf('No solution, exitflag: %d \n', exitflag)
   end
 end
+
+  function [f, g] = obj(x, Y)
+    Y2 = Y((Y*x+alpha)<0,:);
+    f = norm(Y2*x+alpha);
+    g = Y2'*(Y2*x+alpha);
+  end
 
 end
