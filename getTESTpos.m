@@ -46,6 +46,11 @@ for t = q+1:T
   
   opt = testADMM(Y, s(activeI)', alpha);
   exitflag = (s(activeI)*opt)>0;
+  
+  %lambda = [1, 0.125];
+  %opt = ( (lambda(1)*Q + lambda(2)*(Y'*Y)) \ (2*s(activeI)' - alpha*lambda(2)*Y'*ones(lookBack,1)) );
+  %exitflag=1;
+  
   %[opt, ~, exitflag] = fmincon(@(x)obj(x,Y), s(activeI)', -s(activeI),-1,[],[],[],[],[],options2);
   
   if exitflag>=0
