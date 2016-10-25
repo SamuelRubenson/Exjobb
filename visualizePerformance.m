@@ -34,7 +34,7 @@ bar(sharpe_ratios)
 set(gca,'xtick', 1:length(models),'xticklabel', models)
 ylabel('Sharpe Ratio')
 
-
+nanmean(drawdowns)
 
 figure(3), clf
 for iModel=1:length(models)
@@ -144,7 +144,7 @@ end
 n = numel(models); 
 for iModel = 1:n
 if iModel~=compareTo;
-subplot(ceil((n-1)/2),2,double(iModel - (iModel>compareTo))), title(sprintf('%s vs %s, Rolling %d-year Sharpe',models{iModel}, models{compareTo}, years))
+subplot(ceil((n-1)/2),2,double(iModel - (iModel>compareTo))), 
 difff = (rollingSharpes(:,iModel)-rollingSharpes(:,compareTo));
 lower = difff.*(difff<=0); lower(isnan(lower)) = 0;
 upper = difff.*(difff>0); upper(isnan(upper)) = 0;
@@ -154,6 +154,7 @@ xlim([datenum(dates(1)), datenum(dates(end))])
 ylim([-1.75,1.75])
 dynamicDateTicks()
 ylabel('Rolling Sharp difference')
+title(sprintf('%s vs %s, Rolling %d-year Sharpe. Integra: %.1f',models{iModel}, models{compareTo}, years, NansumNan(difff)))
 end
 end
 
