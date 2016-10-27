@@ -12,11 +12,17 @@ for t = 1:T
 end
 
 
+x = [1; zeros(800,1)];
+a = 1-1/100; a2 = 1-1/200;
+y1 = filter(1-a2,[1, -a2],x); 
+y2 = filter(1-a,[1, -a],filter(1-a,[1, -a],x));
+y3 = (y1 + 1.5*y2);
 
 pos = nan(T,N);
 q = lookBack;
 alpha = -.5;
 C = 1;
+c = (1:q)'/q;
 
 tmp = sum(~isnan(dZ),2);
 tmp = [tmp(1:q); tmp(1:end-q)];
@@ -31,11 +37,11 @@ for t = q+1:T
   n = sum(activeI);
   s = s(activeI)/norm(s(activeI));
   
-  H = 5*[eye(n), zeros(n,q); zeros(q, n+q)];
+  H = 2*[eye(n), zeros(n,q); zeros(q, n+q)];
   A = [-y(:,activeI), -eye(q); -s, zeros(1,q)];
   b = [alpha*ones(q, 1); -C];
   lb = [-inf*ones(n,1); zeros(q,1)];
-  f = [zeros(n,1); ones(q,1)];
+  f = [zeros(n,1); c];
   [opt, fval, exitflag] = quadprog(H,f,A,b,[],[],lb,[], zeros(n,1), options);
 
 
