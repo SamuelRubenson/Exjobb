@@ -2,7 +2,7 @@ function [corrMatEst] = estCorrMat(dZ, tau, Filter)
   
   if ~exist('tau', 'var') || isempty(tau), tau = 100; end
   if ~exist('Filter', 'var') || isempty(Filter), Filter = 'EMA'; end
-  burnIn = floor(tau*log(4));
+  burnIn = 252;%floor(tau*log(4));
   
   [T, N] = size(dZ);
   a = 1 - 1/tau;

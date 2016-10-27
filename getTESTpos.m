@@ -37,16 +37,22 @@ for t = q+1:T
   end
   
   n = sum(activeI);
-  
+  Q = corrMat(activeI,activeI,t) + 0.5*eye(n);
 %   A = [-Y(:,activeI), -eye(Npoints); -s(activeI), zeros(1,Npoints)];
 %   b = [alpha*ones(Npoints, 1); -1];
 %   lb = [-inf*ones(n,1); zeros(Npoints,1)];
 %   f = [zeros(n,1); ones(Npoints,1)];
   %[opt, fval, exitflag] = linprog(f,A,b,[],[],lb,[], zeros(n,1), options);
   
-  opt = testADMM(Y, s(activeI)', alpha);
-  exitflag = (s(activeI)*opt)>0;
+  %opt = testADMM(Y, s(activeI)', alpha);
+  %exitflag = (s(activeI)*opt)>0;
+  
   %[opt, ~, exitflag] = fmincon(@(x)obj(x,Y), s(activeI)', -s(activeI),-1,[],[],[],[],[],options2);
+  
+  lambda = [1, 0.25];
+  opt = ( (lambda(1)*Q + lambda(2)*(Y'*Y)) \ (2*s(activeI)' - alpha*lambda(2)*Y'*ones(lookBack,1)) );
+  exitflag=1;
+  
   
   if exitflag>=0
     x = opt(1:n);

@@ -34,7 +34,7 @@ bar(sharpe_ratios)
 set(gca,'xtick', 1:length(models),'xticklabel', models)
 ylabel('Sharpe Ratio')
 
-
+nanmean(drawdowns,1)
 
 figure(3), clf
 for iModel=1:length(models)
@@ -47,7 +47,7 @@ for iModel=1:length(models)
   for iClass = 2:size(plot_data,2)
     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
     xlim([datenum(dates(1)), datenum(dates(end))])
-    dynamicDateTicks()
+    %dynamicDateTicks()
   end
   ylim([0,1])
 end
@@ -73,7 +73,7 @@ for iModel = 1:length(models)
   for iClass = 2:size(plot_data,2)
     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
     xlim([datenum(dates(1)), datenum(dates(end))])
-    dynamicDateTicks()
+    %dynamicDateTicks()
   end
   ylim([-0.1,1.1])
 end
@@ -86,32 +86,33 @@ legend(groups)
 
 % ./repmat(NansumNan(abs(outCome.Models.TF.pos),2),1,nMarkets)
 % ./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
-meanVarTF = nanmean(abs(outCome.Models.TF.pos),1);
-figure(5), clf
-for iModel = 1:length(models)
-   meanVarModel = nanmean(abs(outCome.Models.(models{iModel}).pos),1);
-   ratios = meanVarModel./meanVarTF;
-   subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
-   bar(ratios/mean(ratios)); %how to scale?
-end
-
-
-%./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
-[meanVarTF, groups] = grpstats(NansumNan(abs(outCome.Models.TF.pos)',2),...
-  assetClasses',{'sum', 'gname'}); 
-figure(6), clf
-for iModel = 1:length(models)
-   [meanVarModel, groups] = grpstats(NansumNan(abs(outCome.Models.(models{iModel}).pos)',2),...
-     assetClasses',{'sum', 'gname'});
-   ratios = meanVarModel./meanVarTF;
-   subplot(ceil(numel(models)/2),2,iModel);
-   bar(ratios/mean(ratios));
-   set(gca,'xtick', 1:length(groups),'xticklabel', groups)
-end
-
+% meanVarTF = nanmean(abs(outCome.Models.TF.pos),1);
+% figure(5), clf
+% for iModel = 1:length(models)
+%    meanVarModel = nanmean(abs(outCome.Models.(models{iModel}).pos),1);
+%    ratios = meanVarModel./meanVarTF;
+%    subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
+%    bar(ratios/mean(ratios)); %how to scale?
+% end
 % 
 % 
-% 
+% %./repmat(NansumNan(abs(outCome.Models.(models{iModel}).pos),2),1,nMarkets)
+% [meanVarTF, groups] = grpstats(NansumNan(abs(outCome.Models.TF.pos)',2),...
+%   assetClasses',{'sum', 'gname'}); 
+% figure(6), clf
+% for iModel = 1:length(models)
+%    [meanVarModel, groups] = grpstats(NansumNan(abs(outCome.Models.(models{iModel}).pos)',2),...
+%      assetClasses',{'sum', 'gname'});
+%    ratios = meanVarModel./meanVarTF;
+%    subplot(ceil(numel(models)/2),2,iModel);
+%    bar(ratios/mean(ratios));
+%    set(gca,'xtick', 1:length(groups),'xticklabel', groups)
+% end
+
+
+
+
+
 % figure(7), clf, hold on, title('Holding times'), xlabel('beta')
 % plot(outCome.Models.LES.lookBack, outCome.Models.TF.htime*ones(length(outCome.Models.LES.htime),1))
 % plot(outCome.Models.LES.lookBack, outCome.Models.LES.htime);
@@ -125,10 +126,7 @@ end
 % 
 % figure(9), clf, hold on, title('Mean drawdown')
 % plot(outCome.Models.LES.lookBack, nanmean(drawdowns(:,1))*ones(length(outCome.Models.LES.lookBack),1))
-% draw = [];
-% for iModel = 2:numel(models)
-%   draw = [draw, nanmean(outCome.Models.(models{iModel}).equityCurve-cummax(outCome.Models.(models{iModel}).equityCurve,1),1)'];
-% end
+% draw = nanmean(outCome.Models.LES.equityCurve-cummax(outCome.Models.LES.equityCurve,1),1)';
 % plot(outCome.Models.LES.lookBack, draw)
 % xlabel('\lambda')
 % legend(models)
