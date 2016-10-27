@@ -24,12 +24,12 @@ for iModel = 1:length(models);
   plot(dates, model_data.equityCurve(:,sharpe_index(iModel)))
   eqCurves(:,iModel) = model_data.equityCurve(:,sharpe_index(iModel));
   drawdowns(:,iModel) = model_data.equityCurve(:,sharpe_index(iModel))-cummax(model_data.equityCurve(:,sharpe_index(iModel)));
-  htimes(iModel) = model_data.htime;
+  htimes(iModel) = model_data.htime(sharpe_index(iModel));
   hold off
 end
 figure(1), title('Equity curve'), legend(models)
 figure(2), clf
-subplot(1,2,1), hold on, title('Drawdown'), boxplot(drawdowns, 'Labels', models, 'Notch', 'on')
+subplot(1,2,1), hold on, title('Drawdown'), boxplot(drawdowns, 'Labels', models, 'Notch', 'on'), ylabel('Annualized Standard Deviations')
 subplot(1,2,2), hold on
 bar(sharpe_ratios)
 set(gca,'xtick', 1:length(models),'xticklabel', models)
@@ -118,26 +118,23 @@ legend(groups)
 % 
 % 
 % 
-% figure(7), clf, hold on, title('Holding times'), xlabel('beta')
-% plot(outCome.Models.LES.lookBack, outCome.Models.TF.htime*ones(length(outCome.Models.LES.htime),1))
-% plot(outCome.Models.LES.lookBack, outCome.Models.LES.htime);
-% legend(models)
-% 
-% figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
-% plot(outCome.Models.LES.lookBack, outCome.Models.TF.sharpe*ones(length(outCome.Models.LES.sharpe),1))
-% plot(outCome.Models.LES.lookBack, outCome.Models.LES.sharpe);
-% legend(models)
-% 
-% 
-% figure(9), clf, hold on, title('Mean drawdown')
-% plot(outCome.Models.LES.lookBack, nanmean(drawdowns(:,1))*ones(length(outCome.Models.LES.lookBack),1))
-% draw = [];
-% for iModel = 2:numel(models)
-%   draw = [draw, nanmean(outCome.Models.(models{iModel}).equityCurve-cummax(outCome.Models.(models{iModel}).equityCurve,1),1)'];
-% end
-% plot(outCome.Models.LES.lookBack, draw)
-% xlabel('\lambda')
-% legend(models)
+figure(7), clf, hold on, title('Holding times'), xlabel('beta')
+plot(outCome.Models.LES.lookBack, outCome.Models.TF.htime*ones(length(outCome.Models.LES.htime),1))
+plot(outCome.Models.LES.lookBack, outCome.Models.LES.htime);
+legend(models)
+
+figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
+plot(outCome.Models.LES.lookBack, outCome.Models.TF.sharpe*ones(length(outCome.Models.LES.sharpe),1))
+plot(outCome.Models.LES.lookBack, outCome.Models.LES.sharpe);
+legend(models)
+
+
+figure(9), clf, hold on, title('Mean drawdown')
+plot(outCome.Models.LES.lookBack, nanmean(drawdowns(:,1))*ones(length(outCome.Models.LES.lookBack),1))
+draw = nanmean(outCome.Models.LES.equityCurve-cummax(outCome.Models.LES.equityCurve,1),1)';
+plot(outCome.Models.LES.lookBack, draw)
+xlabel('\lambda')
+legend(models)
 
 
 rollingSharpes = []; years = 1; compareTo = 2;

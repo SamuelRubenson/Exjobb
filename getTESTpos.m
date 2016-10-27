@@ -2,8 +2,8 @@ function [pos] = getTESTpos( dZ, signals, corrMat, lookBack,  target_volatility,
 
 [T,N] = size(signals);
 
-options = optimoptions('linprog','Algorithm','dual-simplex', 'Display', 'off');
-%options = optimoptions('quadprog','Display', 'off');
+%options = optimoptions('linprog','Algorithm','dual-simplex', 'Display', 'off');
+options = optimoptions('quadprog','Display', 'off');
 dZnorm = nan(size(dZ));
 for t = 1:T
   y = dZ(t,:);
@@ -21,7 +21,7 @@ C = 1;
 tmp = sum(~isnan(dZ),2);
 tmp = [tmp(1:q); tmp(1:end-q)];
 
-parfor t = q+1:T
+for t = q+1:T
   t
   %q = 6*tmp(t);
   y = dZnorm(t-q+1:t,:);
@@ -31,15 +31,17 @@ parfor t = q+1:T
   n = sum(activeI);
   s = s(activeI)/norm(s(activeI));
   
+  H = 5*[eye(n), zeros(n,q); zeros(q, n+q)];
   A = [-y(:,activeI), -eye(q); -s, zeros(1,q)];
   b = [alpha*ones(q, 1); -C];
   lb = [-inf*ones(n,1); zeros(q,1)];
   f = [zeros(n,1); ones(q,1)];
-  [opt, fval, exitflag] = linprog(f,A,b,[],[],lb,[], zeros(n,1), options);
+  [opt, fval, exitflag] = quadprog(H,f,A,b,[],[],lb,[], zeros(n,1), options);
 
 
   if exitflag>=0
-    x = opt(1:n)
+    x = opt(1:n);
+    norm(x)
     %alpha = opt(n+1);
     x = x*target_volatility/sqrt(x(:)'*corrMat(activeI,activeI,t)*x(:));
     out = nan(1,N);

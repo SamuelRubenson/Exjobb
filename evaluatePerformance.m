@@ -99,8 +99,8 @@ end
     sharpe=[]; equityCurve=[]; pos=[]; htime = []; rev = [];
     for beta = params.beta
       for lookBack = params.lookBack
-        ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
-        %ipos = getTESTpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
+        %ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
+        ipos = getTESTpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
         [sh, eq, ht, r] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
         sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht]; rev = [rev, r(:)];
       end
