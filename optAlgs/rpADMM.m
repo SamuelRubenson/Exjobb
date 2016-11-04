@@ -1,13 +1,13 @@
 function [w] = rpADMM(Q, target_volatility, signal)
   if ~exist('signal', 'var'), signal = ones(size(Q,1),1); end
 
-  w0 = ones(size(signal))*0.9*target_volatility/sqrt(sum(sum(Q)));
+  w0 = ones(size(signal));%*0.9*target_volatility/sqrt(sum(sum(Q)));
   mu = sum(abs(signal))/target_volatility^2/2;
   
   z=w0(:); u=zeros(length(w0),1);  
-  tol = 10^-10; max_norm = 1;
+  tol = 1e-8; max_norm = 1;
   rho = 0.5;
-  tau = 2; mult = 10;
+  tau = 1.5; mult = 2;
   
   [H,D] = eig(Q);
   while max_norm>tol
