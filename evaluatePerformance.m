@@ -58,7 +58,7 @@ end
 %---------------------------------------------------------------------------
   
   function [dZ, yz, corrMat_tm1] = initialize()
-    disp('Initializing...')
+    %disp('Initializing...')
     yzv=yangzhang(cat(3,Open,High,Low,Close), Config.yz_tau);
     yz = sqrt(yzv([1 1:end-1],:));
     dZ = [nan(1,nMarkets) ; diff(lvcf(Close))]./yz;
@@ -69,7 +69,7 @@ end
 %---------------------------------------------------------------------------
   
   function [pos] = runTF_ema(params)
-    disp('Processing TF-model...')
+    %disp('Processing TF-model...')
     pos = getTFpos(dZ, corrMat, params.aLong, params.aShort, Config.target_volatility);
     [sharpe, equityCurve, htime, rev] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     output.Models.TF = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'rev', rev);
@@ -78,7 +78,7 @@ end
 %---------------------------------------------------------------------------
 
   function [] = runModel(model, params)
-    fprintf('Processing %s-model...\n',model)
+    %fprintf('Processing %s-model...\n',model)
     switch model
       case 'MV'
         pos = getMVpos(TF_pos, corrMat, Config.target_volatility, params.lambda);
@@ -95,17 +95,22 @@ end
 
 
   function [] = runLES(params)
-    disp('Processing LES-model...')
-    sharpe=[]; equityCurve=[]; pos=[]; htime = []; rev = [];
-    for beta = params.beta
-      for lookBack = params.lookBack
-        %ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
-        ipos = getTESTpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
-        [sh, eq, ht, r] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-        sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht]; rev = [rev, r(:)];
-      end
+    %disp('Processing LES-model...')
+    [Q, L] =  ndgrid(params.lookBack, params.lambda);
+    sharpe=zeros(size(Q)); equityCurve=[]; pos=[]; htime = zeros(size(Q)); rev = []; meanDraw = zeros(size(Q)); meanNorm = zeros(size(Q));
+    nInstances = numel(Q);
+    for k = 1:nInstances
+      [lookBack, lambda] = deal(Q(k),L(k));
+      %ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
+      [ipos, mNorm, dev] = getTESTpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, params.beta, lambda);
+      [sh, eq, ht, r] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+
+      sharpe(k) = sh; htime(k) = ht;
+      meanDraw(k) = nanmean(eq - cummax(eq));
+      meanNorm(k) = mNorm;
+      disp('.')
     end
-    output.Models.LES = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'rev', rev);
+    output.Models.LES = struct('sharpe', sharpe, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'meanDraw', meanDraw, 'meanNorm', meanNorm, 'lambda', params.lambda, 'equityCurve', eq, 'pos', ipos, 'rev', r, 'dev', dev);
   end
 
 %--------------------------------------------------------------------------
