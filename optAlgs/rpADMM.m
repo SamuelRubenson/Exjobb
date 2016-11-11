@@ -9,12 +9,13 @@ function [w] = rpADMM(Q, target_volatility, signal)
   rho = 0.5;
   tau = 1.5; mult = 2;
   
-  [H,D] = eig(Q);
+  [H,D] = eig(Q,'vector');
   while max_norm>tol
     x_new = 1/2*((z-u) + sqrt((z-u).^2 + 4*abs(signal(:))/rho));
-    z_new = rho*H*diag(1./(diag(2*mu*D)+rho))*H'*(x_new+u);
+    %z_new = rho*H*diag(1./(diag(2*mu*D)+rho))*H'*(x_new+u);
+    z_new = rho * (H*((H'*(x_new+u)) ./ (2*mu*D+rho)));
     u_new = u + (x_new-z_new);
-    s = norm(rho*(z-z_new));
+    s = rho*norm((z-z_new));
     r =  norm(u_new-u);
     [rho, u_new] = updateRho(s,r,rho,u_new);
     max_norm = max(s,r);
