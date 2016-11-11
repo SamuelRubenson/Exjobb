@@ -6,15 +6,18 @@ function [w] = testADMM(Y,c, signal, alpha, lambda)
   %w0 = ones(size(b));
   
   z=alpha; u=zeros(q,1);  
-  tol = 10^-4; max_norm = 1;
-  rho = 1;
+  tol = 10^-4; maxIter = 2000; max_norm = 1;
+  rho = 0.5;
   tau = 1.25; mult = 10;
   
   %subSize = [q, 3];
   cMat = repmat(c,1,3);
   alphaMat = repmat(alpha,1,3);
   [H, D] = eig(Y'*Y, 'vector');
-  while max_norm>tol
+  
+  nIter = 0;
+  while max_norm>tol && nIter < maxIter
+    nIter = nIter + 1;
     %g0 = (lambda*eye(N) + rho*YTY)\(rho*YT*v); %g1 = (lambda*eye(N) + rho*YTY)\signal;
     tmp = (rho*D + lambda);
     g0 =  H*((H'*(rho*YT*(z-u))) ./ tmp);    
@@ -32,12 +35,14 @@ function [w] = testADMM(Y,c, signal, alpha, lambda)
     u_new = u + (Yx - z_new);
     s = rho*norm(z-z_new);
     r =  norm(u_new-u);
-    [rho, u_new] = updateRho(s,r,rho,u_new);
+    if nIter < maxIter/2
+      [rho, u_new] = updateRho(s,r,rho,u_new);
+    end
     max_norm = max(s,r);
     z = z_new; u = u_new;
   end
   w = x_new;
-
+  %if nIter == maxIter, disp('.'); end
   
   function [rho, u_new] = updateRho(s,r,rho,u_new)
     if r/s > mult
