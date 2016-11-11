@@ -35,9 +35,7 @@ bar(sharpe_ratios)
 set(gca,'xtick', 1:length(models),'xticklabel', models)
 ylabel('Sharpe Ratio')
 
-%figure(3), hold on, title('Drawdown'), plot(dates, drawdowns), ylim([1.5*min(min(drawdowns)),0]), legend(models)
-
-%figure(4), clf, hold on
+nanmean(drawdowns)
 
 
 
@@ -53,7 +51,7 @@ for iModel=1:length(models)
   for iClass = 2:size(plot_data,2)
     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
     xlim([datenum(dates(1)), datenum(dates(end))])
-    dynamicDateTicks()
+    %dynamicDateTicks()
   end
   ylim([0,1])
 end
@@ -79,7 +77,7 @@ for iModel = 1:length(models)
   for iClass = 2:size(plot_data,2)
     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
     xlim([datenum(dates(1)), datenum(dates(end))])
-    dynamicDateTicks()
+    %dynamicDateTicks()
   end
   ylim([-0.1,1.1])
 end
@@ -115,26 +113,26 @@ legend(groups)
 %    set(gca,'xtick', 1:length(groups),'xticklabel', groups)
 % end
 
-% 
-% 
-% 
-figure(7), clf, hold on, title('Holding times'), xlabel('beta')
-plot(outCome.Models.LES.lookBack, outCome.Models.TF.htime*ones(length(outCome.Models.LES.htime),1))
-plot(outCome.Models.LES.lookBack, outCome.Models.LES.htime);
-legend(models)
-
-figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
-plot(outCome.Models.LES.lookBack, outCome.Models.TF.sharpe*ones(length(outCome.Models.LES.sharpe),1))
-plot(outCome.Models.LES.lookBack, outCome.Models.LES.sharpe);
-legend(models)
 
 
-figure(9), clf, hold on, title('Mean drawdown')
-plot(outCome.Models.LES.lookBack, nanmean(drawdowns(:,1))*ones(length(outCome.Models.LES.lookBack),1))
-draw = nanmean(outCome.Models.LES.equityCurve-cummax(outCome.Models.LES.equityCurve,1),1)';
-plot(outCome.Models.LES.lookBack, draw)
-xlabel('\lambda')
-legend(models)
+% 
+% figure(7), clf, hold on, title('Holding times'), xlabel('beta')
+% plot(outCome.Models.LES.lookBack, outCome.Models.TF.htime*ones(length(outCome.Models.LES.htime),1))
+% plot(outCome.Models.LES.lookBack, outCome.Models.LES.htime);
+% legend(models)
+% 
+% figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
+% plot(outCome.Models.LES.lookBack, outCome.Models.TF.sharpe*ones(length(outCome.Models.LES.sharpe),1))
+% plot(outCome.Models.LES.lookBack, outCome.Models.LES.sharpe);
+% legend(models)
+% 
+% 
+% figure(9), clf, hold on, title('Mean drawdown')
+% plot(outCome.Models.LES.lookBack, nanmean(drawdowns(:,1))*ones(length(outCome.Models.LES.lookBack),1))
+% draw = nanmean(outCome.Models.LES.equityCurve-cummax(outCome.Models.LES.equityCurve,1),1)';
+% plot(outCome.Models.LES.lookBack, draw)
+% xlabel('\lambda')
+% legend(models)
 
 
 rollingSharpes = []; years = 1; compareTo = 2;
@@ -159,7 +157,7 @@ jbfill(datenum(dates)',zeros(numel(dates),1)',lower','r');
 jbfill(datenum(dates)', upper', zeros(numel(dates),1)', 'g');
 xlim([datenum(dates(1)), datenum(dates(end))])
 ylim([-1.75,1.75])
-dynamicDateTicks()
+%dynamicDateTicks()
 ylabel('Rolling Sharp difference')
 title(sprintf('%s vs %s, Rolling %d-year Sharpe. Integral: %.1f',models{iModel}, models{compareTo}, years, NansumNan(difff)))
 end
@@ -182,7 +180,7 @@ figure()
 rollingSharpes = rollingParts{i};
 n = numel(models); 
 for iModel = 1:n
-if iModel~=compareTo;
+if iModel~=compareTo
 subplot(ceil((n-1)/2),2,double(iModel - (iModel>compareTo))),
 difff = (rollingSharpes(:,iModel)-rollingSharpes(:,compareTo));
 %if i==2, difff=-difff; end
@@ -201,9 +199,16 @@ end
 
 
 
-figure(), hold on, bar(htimes), set(gca,'xtick', 1:length(models),'xticklabel', models)
+figure(), hold on, title('Holding times'), bar(htimes), set(gca,'xtick', 1:length(models),'xticklabel', models)
 
-
+figure(), hold on, title('Long bias')
+longB = [];
+for iModel = 1:numel(models)
+  pos = outCome.Models.(models{iModel}).pos;
+  longB = [longB; NansumNan(NansumNan(pos(pos>0)))/NansumNan(NansumNan(abs(pos)))];
+end
+bar(longB)
+set(gca,'xtick', 1:length(models),'xticklabel', models)
 %---------------------- Model-CORR
 
 rev = diff(eqCurves,1);
