@@ -3,7 +3,7 @@ function [pos, mNorm, dev] = getTESTpos( dZ, signals, corrMat, lookBack,  target
 [T,N] = size(signals);
 
 %options = optimoptions('linprog','Algorithm','dual-simplex', 'Display', 'off');
-options = optimoptions('quadprog','Display', 'off');
+%options = optimoptions('quadprog','Display', 'off');
 
 dZnorm = nan(size(dZ));
 for t = 1:T
@@ -18,11 +18,11 @@ constr = nan(T,1);
 
 
 q = lookBack;
-%alpha = beta;
 C = 1;
 
 %alpha = [-0.5, -0.2, 0.1];
 alpha = [-0.75, -0.5, -0.25, -0.1, 0, 0.1];
+
 nAlpha = numel(alpha);
 nAux = nAlpha*q;
 bb = ones(nAux,1);
@@ -36,9 +36,7 @@ end
 %c = ones(nAux,1)/nAux;
 
 pos = nan(T,N);
-parfor t = q+1:T
-  t
-  %q = 6*tmp(t);
+for t = q+1:T
   y = dZnorm(t-q+1:t,:);
   s = signals(t,:);
   activeI = logical(all(~isnan(y),1).*(~isnan(s)));
@@ -46,15 +44,16 @@ parfor t = q+1:T
   n = sum(activeI);
   s = s(activeI)/norm(s(activeI));
   
-  H = lambda*[eye(n), zeros(n,nAux); zeros(nAux, n+nAux)];
+  %H = lambda*[eye(n), zeros(n,nAux); zeros(nAux, n+nAux)];
   Y = repmat(-y(:,activeI), nAlpha, 1);
-  A = [Y, -eye(nAux); -s, zeros(1,nAux)];
-  b = [bb; -C];
-  lb = [-inf*ones(n,1); zeros(nAux,1)];
-  f = [zeros(n,1); c];
+  %A = [Y, -eye(nAux); -s, zeros(1,nAux)];
+  %b = [bb; -C];
+  %lb = [-inf*ones(n,1); zeros(nAux,1)];
+  %f = [zeros(n,1); c];
   
-  [opt, fval, exitflag] = quadprog(H,f,A,b,[],[],lb,[], [], options);
-  
+  %[opt, fval, exitflag] = quadprog(H,f,A,b,[],[],lb,[], [], options);
+  exitflag = 1;
+
 %   options = optimoptions(@fmincon,'Algorithm','interior-point',...
 %     'SpecifyObjectiveGradient',true,'SpecifyConstraintGradient',true,...
 %     'HessianFcn',@(x,lambda)quadhess(x,lambda,H));
@@ -62,11 +61,11 @@ parfor t = q+1:T
 %     [],[],[],[],lb,[],@(x)quadconstr(x,H,A,b,2),options);
   
   if exitflag>=0
-    x = opt(1:n);
-    %norm(x)
+    %x = opt(1:n);
+    x = testADMM(-Y,c, s(:), bb, lambda);
+    %if max(abs(x-x1))>0.01, disp('DIFFERENCE'); end
     normen(t) = norm(x);
     constr(t) = s*x;
-    %alpha = opt(n+1);
     x = x*target_volatility/sqrt(x(:)'*corrMat(activeI,activeI,t)*x(:));
 
     thisPos = nan(1,N);
@@ -82,12 +81,13 @@ parfor t = q+1:T
   end
 end
 
-pos2 = pos;
-for t = 2:size(pos,1)
-  ind = ~isnan(pos2(t-1,:));
-  pos2(t,ind) = (1-1/4)*pos2(t-1,ind) + 1/4*pos2(t,ind);
-end
-pos = pos2;
+%%%%  Average pos  %%%%
+% pos2 = pos;
+% for t = 2:size(pos,1)
+%   ind = ~isnan(pos2(t-1,:));
+%   pos2(t,ind) = (1-1/4)*pos2(t-1,ind) + 1/4*pos2(t,ind);
+% end
+% pos = pos2;
 
 mNorm = nanmean(normen);
 
