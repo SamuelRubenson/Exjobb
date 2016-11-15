@@ -10,24 +10,29 @@ function [ RPpos ] = getRPMODpos(signals, corrMat, target_volatility, lambda, re
     activeI = logical(any(Q).*(~isnan(signals(t,:))));
     if ~any(activeI), continue; end
     signal = signals(t,activeI)';
-    norm_signal = signal/norm(signal);
-    n = length(signal);
-    
-    W = []; factor = [];
-    for iReg = regCoeffs
-      mod_signal = ((Q(activeI,activeI) + iReg*eye(n))/(iReg+1))\signal;
-      adjusted_corrMat = adjustForSigns(Q(activeI,activeI),sign(mod_signal(:)));      
-      w_t = rpADMM(adjusted_corrMat, target_volatility, signal);  
-      checkSolution(w_t, adjusted_corrMat, signal);
-      scaled_signed_wt = (w_t(:)'/norm(w_t)).*(sign(mod_signal(:)'));
-      W = [W; scaled_signed_wt]; factor = [factor; norm(w_t)];
-    end
-    [~,closest] = min(pdist2(W,norm_signal(:)'));
-    w = W(closest,:)*factor(closest);
+
+
+    w_init = RP_ADMM(Q(activeI, activeI), signal, target_volatility, 'RPmod');
+    expRet_init = signal'*w_init;
+    w = iterateSigns(Q(activeI,activeI), signal, w_init, expRet_init, signal);
+
     RPpos(t,activeI) = w*target_volatility/sqrt(w(:)'*corrMat(activeI,activeI,t)*w(:));
   end
   
   
+  function [w_best] = iterateSigns(Q, signal, w_best, expRet_best, signal_current)
+    for iS = 1:length(signal)
+      mod_signal = signal_current;
+      mod_signal(iS) = -signal_current(iS);
+      w_new = RP_ADMM(Q, mod_signal, target_volatility, 'RPmod');
+      expRet = signal'*w_new;
+      if expRet > expRet_best
+        w_best = iterateSigns(Q, signal, w_new, expRet, mod_signal);
+        break
+      end
+    end
+  end
+
   
   function [C_adj] = adjustForSigns(C, signal)
     tmp = repmat(signal,1,size(C,1));
