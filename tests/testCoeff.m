@@ -8,7 +8,7 @@ y4 = -linspace(-q/3,q-q/3,q)'.^2/max(linspace(-q/3,q-q/3,q)'.^2)+1;
 y5 = flip((1:q)'/q);
 figure(20), plot([y1/max(y1) y2/max(y2) y3/max(y3), flip((1:q)'/q) ])
 %figure(21), plot([y5 (y4+y5)/2 y4])
-%%
+%% TEST TF filter on retunrs!!
 
 q = 1000;
 x = [1; zeros(q-1,1)];

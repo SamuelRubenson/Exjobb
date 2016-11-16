@@ -98,19 +98,22 @@ end
     %disp('Processing LES-model...')
     [Q, L] =  ndgrid(params.lookBack, params.lambda);
     sharpe=zeros(size(Q)); equityCurve=[]; pos=[]; htime = zeros(size(Q)); rev = []; meanDraw = zeros(size(Q)); meanNorm = zeros(size(Q));
+    sharpe2=zeros(size(Q)); htime2 = zeros(size(Q)); meanDraw2 = zeros(size(Q));
     nInstances = numel(Q);
-    for k = 1:nInstances
+    parfor k = 1:nInstances
       [lookBack, lambda] = deal(Q(k),L(k));
       %ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
       [ipos, mNorm, dev] = getTESTpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, params.beta, lambda);
       [sh, eq, ht, r] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-
+      [sh2, eq2, ht2] = indivitualResults(avgPos(ipos), Config.cost, Open, Close, sigma_t, Config.riskAdjust);
       sharpe(k) = sh; htime(k) = ht;
       meanDraw(k) = nanmean(eq - cummax(eq));
       meanNorm(k) = mNorm;
+      sharpe2(k) = sh2; htime2(k) = ht2;
+      meanDraw2(k) = nanmean(eq2 - cummax(eq2));
       disp('.')
     end
-    output.Models.LES = struct('sharpe', sharpe, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'meanDraw', meanDraw, 'meanNorm', meanNorm, 'lambda', params.lambda, 'equityCurve', eq, 'pos', ipos, 'rev', r, 'dev', dev);
+    output.Models.LES = struct('meanDraw2', meanDraw2, 'sharpe2', sharpe2, 'htime2', htime2, 'sharpe', sharpe, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'meanDraw', meanDraw, 'meanNorm', meanNorm, 'lambda', params.lambda);%, 'equityCurve', eq, 'pos', ipos, 'rev', r, 'dev', dev);
   end
 
 %--------------------------------------------------------------------------
