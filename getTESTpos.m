@@ -36,7 +36,7 @@ end
 %c = ones(nAux,1)/nAux;
 
 pos = nan(T,N);
-for t = q+1:T
+parfor t = q+1:T
   y = dZnorm(t-q+1:t,:);
   s = signals(t,:);
   activeI = logical(all(~isnan(y),1).*(~isnan(s)));

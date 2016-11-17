@@ -13,7 +13,7 @@ dates = datetime(Date,'ConvertFrom','datenum');
 
 Config = struct('cost', 0, 'target_volatility', 10, 'riskAdjust', false, 'yz_tau', 60, 'cov_tau', 100, 'cov_filter', 'EMA');
 
-TF_ema_Params = struct('aLong', [], 'aShort', []);
+TF_ema_Params = struct('aLong', 20:50:200, 'aShort', 10);
 TF = {'TF_ema', TF_ema_Params};
 
 MV_Params = struct('lambda', 0.5);
@@ -25,7 +25,7 @@ RP = {'RP', RP_Params};
 RPmod_Params = struct('lambda', 0.5, 'regCoeffs', 10^10);
 RPM = {'RPmod', RPmod_Params};
 
-LES_Params = struct('lookBack', 290, 'beta', -0.5, 'lambda', 8);
+LES_Params = struct('lookBack', 290, 'beta', -0.5, 'lambda', 15);
 LES = {'LES', LES_Params};
 
 RPLES_Params = struct;
