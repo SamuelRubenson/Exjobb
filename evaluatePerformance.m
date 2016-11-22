@@ -71,7 +71,7 @@ end
   function [pos] = runTF_ema(paramsTF, paramsMV, paramsRP, paramsRPM, paramsLES)
     %disp('Processing TF-model...')
     TF = []; MV = []; RP = []; RPM = []; LES = [];
-    nTau = numel(paramsTF.aLong);
+    nTau = numel(paramsTF.aLong); LESlambda = linspace(5,12,nTau);
     for iTau = 1:nTau
       paramsTF.aLong(iTau)
       [pos, tau] = getTFpos(dZ, corrMat, paramsTF.aLong(iTau), paramsTF.aShort, Config.target_volatility);
@@ -81,7 +81,7 @@ end
       MV = [MV; runModel('MV', paramsMV, pos)];
       RP = [RP; runModel('RP', paramsRP, pos)];
       RPM = [RPM; runModel('RPmod', paramsRPM, pos)];
-      LES = [LES; runLES(paramsLES, pos)];
+      LES = [LES; runLES(paramsLES, pos, tau, LESlambda(iTau))];
     end
     output.Models.TF = TF;
     output.Models.MV = MV;
@@ -96,7 +96,7 @@ end
     %fprintf('Processing %s-model...\n',model)
     switch model
       case 'MV'
-        pos = getMVpos(TF_pos, corrMat, Config.target_volatility, params.lambda);
+        pos = getMVpos(TF_pos, corrMat, Config.target_volatility, params.lambda, assetClasses);
       case 'RP'
         pos = getRPpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
       case 'RPmod'
@@ -112,10 +112,10 @@ end
   end
 
 
-  function [out] = runLES(params, TF_pos)
+  function [out] = runLES(params, TF_pos, tau, testLambda)
     %disp('Processing LES-model...')
     %ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
-    [pos, meanNorm, dev] = getTESTpos(dZ, TF_pos, corrMat, params.lookBack, Config.target_volatility, params.beta, params.lambda);
+    [pos, meanNorm, dev] = getTESTpos(dZ, TF_pos, corrMat, params.lookBack, Config.target_volatility, tau, testLambda);
     [sharpe, eq, htime, r] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     [sharpe2, eq2, htime2] = indivitualResults(avgPos(pos), Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     meanDraw = nanmean(eq - cummax(eq));

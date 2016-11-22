@@ -1,6 +1,14 @@
-function [MVpos] = getMVpos( signals, corrMat, target_volatility, lambda )
+function [MVpos] = getMVpos( signals, corrMat, target_volatility, lambda, assetClasses )
 
   [T,N] = size(signals);
+  
+  lambda2 = 0;
+  classes = unique(assetClasses);
+  nC = numel(classes);
+  cInd = nan(nC,N); 
+  for i = 1:nC
+    cInd(i,:) = cellfun(@(c)strcmp(c,classes{i}), assetClasses);
+  end
   
   MVpos = nan(T,N);
   for t = 1:T
@@ -14,7 +22,13 @@ function [MVpos] = getMVpos( signals, corrMat, target_volatility, lambda )
       Q(activeI, activeI) = H*D*H'; 
     end
     Qreg = addToDiag(Q(activeI, activeI), lambda);
-    wt = Qreg\(signals(t,activeI)');
+    s = signals(t,activeI)';
+    C = cInd(:,activeI);
+    classMeans = C*s;
+    L = nan(sum(activeI),1);
+    for i = 1:size(C,1), L(logical(C(i,:))) = classMeans(i); end
+    S = (1-lambda2)*s + lambda2*L;
+    wt = Qreg\S;
     wt_scaled = wt*target_volatility/sqrt(wt(:)'*Q(activeI, activeI)*wt(:));
     MVpos(t,activeI) = wt_scaled;
   end

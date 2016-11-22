@@ -40,48 +40,48 @@ nanmean(drawdowns)
 
 
 
-figure(3), clf
-for iModel=1:length(models)
-  model_pos = outCome.Models.(models{iModel}).pos(:,:,sharpe_index(iModel));
-  [data,groups] = grpstats(abs(model_pos'),assetClasses',{'sum', 'gname'});
-  data(isnan(data)) = 0;
-  norm_data = sum(abs(data'),2); norm_data(norm_data==0) = 1;%to avoid NaN
-  plot_data = [zeros(size(data',1),1), cumsum(abs(data')./repmat(norm_data,1,length(groups)),2)];
-  subplot(ceil(numel(models)/2),2,iModel), title(models{iModel}),hold on
-  for iClass = 2:size(plot_data,2)
-    jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
-    xlim([datenum(dates(1)), datenum(dates(end))])
-    %dynamicDateTicks()
-  end
-  ylim([0,1])
-end
-legend(groups)
-
-
-Q = outCome.General.corr;
-figure(4), clf
-for iModel = 1:length(models)
-  model_pos = outCome.Models.(models{iModel}).pos(:,:,sharpe_index(iModel));
-  risk_contributions = nan(size(model_pos));
-  for it = 1:size(model_pos,1)
-    Qt = Q(:,:,it);
-    activeI = logical(any(Qt).*(~isnan(model_pos(it,:))));
-    if ~any(activeI), continue; end
-    risk_contributions(it,activeI) = model_pos(it,activeI)' .* (Qt(activeI,activeI)*model_pos(it,activeI)');
-  end
-  [data,groups] = grpstats((risk_contributions'),assetClasses',{'sum', 'gname'});
-  data(isnan(data)) = 0;
-  norm_data = sum((data'),2); norm_data(norm_data==0) = 1; %to avoid NaN
-  plot_data = [zeros(size(data',1),1), cumsum((data')./repmat(norm_data,1,length(groups)),2)];
-  subplot(ceil(numel(models)/2),2,iModel), title(models{iModel}),hold on
-  for iClass = 2:size(plot_data,2)
-    jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
-    xlim([datenum(dates(1)), datenum(dates(end))])
-    %dynamicDateTicks()
-  end
-  ylim([-0.1,1.1])
-end
-legend(groups)
+% figure(3), clf
+% for iModel=1:length(models)
+%   model_pos = outCome.Models.(models{iModel}).pos(:,:,sharpe_index(iModel));
+%   [data,groups] = grpstats(abs(model_pos'),assetClasses',{'sum', 'gname'});
+%   data(isnan(data)) = 0;
+%   norm_data = sum(abs(data'),2); norm_data(norm_data==0) = 1;%to avoid NaN
+%   plot_data = [zeros(size(data',1),1), cumsum(abs(data')./repmat(norm_data,1,length(groups)),2)];
+%   subplot(ceil(numel(models)/2),2,iModel), title(models{iModel}),hold on
+%   for iClass = 2:size(plot_data,2)
+%     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
+%     xlim([datenum(dates(1)), datenum(dates(end))])
+%     %dynamicDateTicks()
+%   end
+%   ylim([0,1])
+% end
+% legend(groups)
+% 
+% 
+% Q = outCome.General.corr;
+% figure(4), clf
+% for iModel = 1:length(models)
+%   model_pos = outCome.Models.(models{iModel}).pos(:,:,sharpe_index(iModel));
+%   risk_contributions = nan(size(model_pos));
+%   for it = 1:size(model_pos,1)
+%     Qt = Q(:,:,it);
+%     activeI = logical(any(Qt).*(~isnan(model_pos(it,:))));
+%     if ~any(activeI), continue; end
+%     risk_contributions(it,activeI) = model_pos(it,activeI)' .* (Qt(activeI,activeI)*model_pos(it,activeI)');
+%   end
+%   [data,groups] = grpstats((risk_contributions'),assetClasses',{'sum', 'gname'});
+%   data(isnan(data)) = 0;
+%   norm_data = sum((data'),2); norm_data(norm_data==0) = 1; %to avoid NaN
+%   plot_data = [zeros(size(data',1),1), cumsum((data')./repmat(norm_data,1,length(groups)),2)];
+%   subplot(ceil(numel(models)/2),2,iModel), title(models{iModel}),hold on
+%   for iClass = 2:size(plot_data,2)
+%     jbfill(datenum(dates)', plot_data(:,iClass)', plot_data(:, iClass-1)', colors(iClass-1,:));
+%     xlim([datenum(dates(1)), datenum(dates(end))])
+%     %dynamicDateTicks()
+%   end
+%   ylim([-0.1,1.1])
+% end
+% legend(groups)
 
 
 

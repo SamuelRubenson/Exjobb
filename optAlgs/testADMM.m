@@ -8,7 +8,7 @@ function [w] = testADMM(Y,c, signal, alpha, lambda)
   z=alpha; u=zeros(q,1);  
   tol = 10^-4; maxIter = 2000; max_norm = 1;
   rho = 0.5;
-  tau = 1.25; mult = 10;
+  tau = 1.5; mult = 10;
   
   %subSize = [q, 3];
   cMat = repmat(c,1,3);
@@ -35,14 +35,14 @@ function [w] = testADMM(Y,c, signal, alpha, lambda)
     u_new = u + (Yx - z_new);
     s = rho*norm(z-z_new);
     r =  norm(u_new-u);
-    if nIter < maxIter/2
+    if nIter > 10 && nIter < maxIter/2
       [rho, u_new] = updateRho(s,r,rho,u_new);
     end
     max_norm = max(s,r);
     z = z_new; u = u_new;
   end
   w = x_new;
-  %if nIter == maxIter, disp('.'); end
+  if nIter == maxIter, disp('LES max iter hit'); end
   
   function [rho, u_new] = updateRho(s,r,rho,u_new)
     if r/s > mult

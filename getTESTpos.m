@@ -1,4 +1,4 @@
-function [pos, mNorm, dev] = getTESTpos( dZ, signals, corrMat, lookBack,  target_volatility, beta, lambda )
+function [pos, mNorm, dev] = getTESTpos( dZ, signals, corrMat, lookBack,  target_volatility, tau, lambda )
 
 [T,N] = size(signals);
 
@@ -18,6 +18,7 @@ constr = nan(T,1);
 
 
 q = lookBack;
+q = floor(1.5*tau);
 C = 1;
 
 %alpha = [-0.5, -0.2, 0.1];

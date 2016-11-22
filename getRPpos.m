@@ -5,7 +5,7 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda, regCo
   RPpos = nan(T,N);
 
   for t = 2:T
-    if mod(t,1000)==0, fprintf('Processing RP-model...(%d/%d)\n',t,T); end
+    %if mod(t,1000)==0, fprintf('Processing RP-model...(%d/%d)\n',t,T); end
     Q = addToDiag(corrMat(:,:,t), lambda);
     activeI = logical(any(Q).*(~isnan(signals(t,:))));
     if ~any(activeI), continue; end
