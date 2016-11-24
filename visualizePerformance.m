@@ -154,7 +154,7 @@ for iModel = 1:numel(models);
   subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
   plot(costs, sharpe)
   %legend(sprintf) lambda
-  ylim([-.5 1.5])
+  ylim([.5 1.5])
 end
 
 figure(10), clf, hold on, title('Mean drawdown')
@@ -167,6 +167,31 @@ plot(outCome.Models.MV.lambda, draw)
 xlabel('\lambda')
 legend(models)
 
+
+figure(11), clf, hold on, title('||w||_2')
+N = numel(outCome.Models.MV.lambda);
+all_norms = nan(numel(dates),1);
+pos = outCome.Models.TF.pos;
+for t = 1:numel(dates)      
+  activeI = ~isnan(pos(t,:));
+  all_norms(t) = sqrt(norm(pos(t,activeI)))/sum(activeI);
+end
+plot(outCome.Models.MV.lambda, nanmean(all_norms)*ones(N,1));
+for iModel = 2:numel(models)
+  pos = outCome.Models.(models{iModel}).pos;
+  store = zeros(N,1);
+  for il = 1:N
+    all_norms = nan(numel(dates),1);
+    for t = 1:numel(dates)
+      activeI = ~isnan(pos(t,:,il));
+      all_norms(t) = sqrt(norm(pos(t,activeI,il)))/sum(activeI);
+    end
+    store(il) = nanmean(all_norms);
+  end
+  plot(outCome.Models.MV.lambda, store)
+end
+xlabel('\lambda')
+legend(models)
   
   
 end
