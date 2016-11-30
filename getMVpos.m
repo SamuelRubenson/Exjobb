@@ -38,7 +38,7 @@ function [MVpos] = getMVpos( signals, corrMat, target_volatility, lambda )
   end
 
   function[regQ] = addToDiag(Q, lambda)
-    regQ = Q + lambda*diag(diag(Q));
+    regQ = (1-lambda)*Q + lambda*diag(diag(Q));
   end
     
 end

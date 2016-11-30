@@ -47,7 +47,7 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda, regCo
   end
 
   function[regQ] = addToDiag(Q, lambda)
-    regQ = Q + lambda*diag(diag(Q));
+    regQ = (1-lambda)*Q + lambda*diag(diag(Q));
   end
 
 end

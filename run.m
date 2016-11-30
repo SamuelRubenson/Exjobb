@@ -16,7 +16,7 @@ Config = struct('cost', 0, 'target_volatility', 10, 'riskAdjust', false, 'yz_tau
 TF_ema_Params = struct('aLong', [], 'aShort', []);
 TF = {'TF_ema', TF_ema_Params};
 
-MV_Params = struct('lambda', 0.5);
+MV_Params = struct('lambda', 0.8);
 MV = {'MV', MV_Params};
 
 RP_Params = struct('lambda', 0.5, 'regCoeffs', 10^10);
@@ -32,7 +32,7 @@ RPLES_Params = struct;
 RPLES = {'RPLES', RPLES_Params};
 
 start = 1; X = 1:74;% [1:3, 6:9, 11, 14 ,22:23, 26, 4, 10, 16:18 27, 29, 34, 37, 40, 41:42, 5, 13, 15, 21, 25, 31, 63:68, 12, 19, 20, 24, 28, 32, 33, 35, 36, 38, 43:44];
-outCome = evaluatePerformance(Open(start:end,X), High(start:end,X), Low(start:end,X), Close(start:end,X), Config, assetClasses(X), TF{:}, MV{:}, RP{:}, RPM{:}, LES{:});
+outCome = evaluatePerformance(Open(start:end,X), High(start:end,X), Low(start:end,X), Close(start:end,X), Config, assetClasses(X), TF{:}, MV{:});
 
 visualizePerformance(outCome, dates(start:end), assetClasses(X));
 
