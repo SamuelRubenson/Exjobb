@@ -45,3 +45,15 @@ end
 plot(tau, TFcorrs)
 title('Equitycurve-Correlation with trend follower'), xlabel('\tau'), ylabel('\rho'), box on
 
+%% Check before / after correlation
+models = fieldnames(outCome.Models);
+X = [1, 15, 39];
+store = [];
+for i = 1:numel(models)
+test = cat(2,outCome.Models.(models{i}).equityCurve);
+test = diff(test,1);
+test2 = test(:, X);
+c = corr(test2,'rows','complete');
+store = [store; mean( mean( c(~eye(size(test2,2))) ) )];
+end
+figure(), bar(store)
