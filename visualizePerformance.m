@@ -134,28 +134,28 @@ legend(groups)
 %-------------------------------------------------------
 figure(7), clf, hold on, title('Holding times'), xlabel('Regularization factor')
 plot(outCome.Models.MV.lambda, outCome.Models.TF.htime*ones(length(outCome.Models.MV.htime),1))
-for iModel = 2:numel(models);
+for iModel = 2:numel(models)
   plot(outCome.Models.(models{iModel}).lambda, outCome.Models.(models{iModel}).htime);
 end
 legend(models)
 
 figure(8), clf, hold on, title('Sharpe ratios'), xlabel('Regularization factor')
 plot(outCome.Models.MV.lambda, outCome.Models.TF.sharpe*ones(length(outCome.Models.MV.sharpe),1))
-for iModel = 2:numel(models);
+for iModel = 2:numel(models)
   plot(outCome.Models.(models{iModel}).lambda, outCome.Models.(models{iModel}).sharpe);
 end
 legend(models)
 
 
-figure(9), clf, hold on, title('Sharpe(cost) for "best" \lambda')
-costs = 0:0.01:0.2;
-for iModel = 1:numel(models);
-  sharpe = sharpeOfCost(outCome, models{iModel}, costs, Open, Close);
-  subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
-  plot(costs, sharpe)
-  %legend(sprintf) lambda
-  ylim([.5 1.5])
-end
+% figure(9), clf, hold on, title('Sharpe(cost) for "best" \lambda')
+% costs = 0:0.01:0.2;
+% for iModel = 1:numel(models)
+%   sharpe = sharpeOfCost(outCome, models{iModel}, costs, Open, Close);
+%   subplot(ceil(numel(models)/2),2,iModel), hold on, title(models{iModel})
+%   plot(costs, sharpe)
+%   %legend(sprintf) lambda
+%   ylim([.5 1.5])
+% end
 
 figure(10), clf, hold on, title('Mean drawdown')
 plot(outCome.Models.MV.lambda, nanmean(drawdowns(:,1))*ones(length(outCome.Models.MV.lambda),1))

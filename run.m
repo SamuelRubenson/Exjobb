@@ -11,7 +11,7 @@ load assetClasses
 load 160830
 dates = datetime(Date,'ConvertFrom','datenum');
 
-Config = struct('cost', 0, 'target_volatility', 10, 'riskAdjust', false, 'yz_tau', 60, 'cov_tau', 100, 'cov_filter', 'EMA');
+Config = struct('cost', 0, 'target_volatility', 10, 'riskAdjust', false, 'yz_tau', 30, 'cov_tau', 100, 'cov_filter', 'avgEMA');
 
 TF_ema_Params = struct('aLong', [], 'aShort', []);
 TF = {'TF_ema', TF_ema_Params};

@@ -5,9 +5,9 @@ function [w] = rpADMM(Q, target_volatility, signal)
   mu = sum(abs(signal))/target_volatility^2/2;
   
   z=w0(:); u=zeros(length(w0),1);  
-  tol = 1e-8; max_norm = 1;
+  tol = 1e-9; max_norm = 1;
   rho = 0.5;
-  tau = 2; mult = 10;
+  tau = 1.5; mult = 3;
   
   [H,D] = eig(Q, 'vector');
   while max_norm>tol

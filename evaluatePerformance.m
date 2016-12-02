@@ -50,7 +50,7 @@ end
 %---------------------------------------------------------------------------
   
   function [dZ, yz, corrMat_tm1] = initialize()
-    disp('Initializing...')
+    %disp('Initializing...')
     yzv=yangzhang(cat(3,Open,High,Low,Close), Config.yz_tau);
     yz = sqrt(yzv([1 1:end-1],:));
     dZ = [nan(1,nMarkets) ; diff(lvcf(Close))]./yz;
@@ -61,17 +61,19 @@ end
 %---------------------------------------------------------------------------
   
   function [pos] = runTF_ema(params)
-    disp('Processing TF-model...')
+    %disp('Processing TF-model...')
     pos = getTFpos(dZ, corrMat, params.aLong, params.aShort, Config.target_volatility);
-    [sharpe, equityCurve, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    output.Models.TF = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime);
+    [sharpe, eq, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+    md = nanmean(eq - cummax(eq));
+    avgTrade = nanmean(NansumNan(abs(pos),2));
+    output.Models.TF = struct('sharpe', sharpe, 'meanDraw', md, 'pos', pos, 'htime', htime, 'avgTrade', avgTrade);
   end
 
 %---------------------------------------------------------------------------
 
   function [] = runModel(model, params)
-    fprintf('Processing %s-model...\n',model)
-    sharpe=[]; equityCurve=[]; pos=[]; htime = [];
+    %fprintf('Processing %s-model...\n',model)
+    sharpe=[]; meanDraw=[]; pos=[]; htime = []; avgTrade = [];
     for lambda = params.lambda
       switch model
         case 'MV'
@@ -84,9 +86,11 @@ end
           ipos = getMVRPpos( TF_pos, corrMat, assetClasses,  Config.target_volatility, lambda, params.lambdaRP);
       end
       [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-      sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; pos = cat(3,pos,ipos); htime = [htime; ht];
+      md = nanmean(eq - cummax(eq));
+      avgT = nanmean(NansumNan(abs(ipos),2));
+      sharpe = [sharpe; sh]; meanDraw = [meanDraw, md]; pos = cat(3,pos,ipos); htime = [htime; ht]; avgTrade = [avgTrade; avgT];
     end
-    output.Models.(model) = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'lambda', params.lambda);
+    output.Models.(model) = struct('sharpe', sharpe, 'meanDraw', meanDraw, 'pos', pos, 'htime', htime, 'lambda', params.lambda, 'avgTrade', avgTrade);
   end
 
 %--------------------------------------------------------------------------
