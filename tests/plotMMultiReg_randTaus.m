@@ -43,15 +43,18 @@ plot(lambda, mean(out.TF.htime)*ones(numel(lambda),1))
 h = [];
 for im = 1:numel(models)
   ht = out.(models{im}).htime;
-  ih = plot(lambda, mean(ht)', 'Color', colors(im,:), 'LineWidth', 2.5);
+  ih = plot(lambda, mean(ht)', 'Color', colors(im,:), 'LineWidth', 1.5);
   h = [h; ih];
   upper = mean(ht)' + 2*std(ht)';
   lower =  mean(ht)' - 2*std(ht)';
   plot(lambda, upper , '-', 'Color', colors(im,:))
   plot(lambda, lower, '-', 'Color', colors(im,:))
-  jbfill(lambda, upper', lower', colors(im,:), 'k', 1, .15);
+  jbfill(lambda, upper', lower', colors(im,:), 'k', 1, .25);
 end
 legend(h, models)
+
+
+
 
 %% distribution over (sharpe)best lambda
 

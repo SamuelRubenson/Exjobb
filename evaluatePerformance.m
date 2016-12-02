@@ -65,7 +65,7 @@ end
     pos = getTFpos(dZ, corrMat, params.aLong, params.aShort, Config.target_volatility);
     [sharpe, eq, htime] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
     md = nanmean(eq - cummax(eq));
-    avgTrade = nanmean(NansumNan(abs(pos),2));
+    avgTrade = nanmean(NansumNan(abs(diff(pos)),2));
     output.Models.TF = struct('sharpe', sharpe, 'meanDraw', md, 'pos', pos, 'htime', htime, 'avgTrade', avgTrade);
   end
 
@@ -87,7 +87,7 @@ end
       end
       [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
       md = nanmean(eq - cummax(eq));
-      avgT = nanmean(NansumNan(abs(ipos),2));
+      avgT = nanmean(NansumNan(abs(diff(ipos)),2));
       sharpe = [sharpe; sh]; meanDraw = [meanDraw, md]; pos = cat(3,pos,ipos); htime = [htime; ht]; avgTrade = [avgTrade; avgT];
     end
     output.Models.(model) = struct('sharpe', sharpe, 'meanDraw', meanDraw, 'pos', pos, 'htime', htime, 'lambda', params.lambda, 'avgTrade', avgTrade);
