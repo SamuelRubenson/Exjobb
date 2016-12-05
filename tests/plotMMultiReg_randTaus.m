@@ -5,7 +5,24 @@ colors =[0.8500,    0.3250,    0.0980;
 lambda = 0:0.1:1;
 models = {'MV', 'RP', 'RPmod'};
 
-figure(1), clf, title('Marginal Sharpe'), hold on, xlabel('\lambda')
+figure(1), clf,
+subplot(1,2,1), title('Sharpe'), hold on, xlabel('\lambda')
+tf = plot(lambda, mean(out.TF.sharpe)*ones(numel(lambda),1), 'LineWidth', 1.5);
+h = tf;
+for im = 1:numel(models)
+  m_sharpe = out.(models{im}).sharpe;
+  ih = plot(lambda, mean(m_sharpe)', 'Color', colors(im,:), 'LineWidth', 1.5);
+  h = [h; ih];
+  upper = mean(m_sharpe)' + 2*std(m_sharpe)';
+  lower =  mean(m_sharpe)' - 2*std(m_sharpe)';
+  plot(lambda, upper , '-', 'Color', colors(im,:), 'LineWidth', 0.5)
+  plot(lambda, lower, '-', 'Color', colors(im,:), 'LineWidth', 0.5)
+  jbfill(lambda, upper', lower', colors(im,:), 'k', 1, .25);
+  %plot([0 1], [0 0], 'k')
+end
+legend(h, [{'TF'}, models])
+
+subplot(1,2,2), title('Marginal Sharpe'), hold on, xlabel('\lambda')
 %plot(lambda, mean(out.TF.sharpe)*ones(numel(lambda),1))
 h = [];
 for im = 1:numel(models)
@@ -21,10 +38,9 @@ for im = 1:numel(models)
 end
 legend(h, models)
 
-
-figure(2), clf, title('Average Drawdown'), hold on, xlabel('\lambda')
-%plot(lambda, mean(out.TF.sharpe)*ones(numel(lambda),1))
-h = [];
+figure(3), clf, title('Average Drawdown'), hold on, xlabel('\lambda'), ylabel('Annualized \sigma')
+tf = plot(lambda, mean(out.TF.meanDraw)*ones(numel(lambda),1), 'LineWidth', 1.5);
+h = tf;
 for im = 1:numel(models)
   md = out.(models{im}).meanDraw;
   ih = plot(lambda, mean(md)', 'Color', colors(im,:), 'LineWidth', 1.5);
@@ -36,10 +52,28 @@ for im = 1:numel(models)
   jbfill(lambda, upper', lower', colors(im,:), 'k', 1, .25);
   %plot([0 1], [0 0], 'k')
 end
+legend(h, [{'TF'}, models])
+
+
+figure(4), clf, title('Marginal Average Drawdown'), hold on, xlabel('\lambda'), ylabel('Annualized \sigma')
+%tf = plot(lambda, mean(out.TF.meanDraw)*ones(numel(lambda),1));
+h = [];
+for im = 1:numel(models)
+  md = out.(models{im}).meanDraw - out.TF.meanDraw;
+  ih = plot(lambda, mean(md)', 'Color', colors(im,:), 'LineWidth', 1.5);
+  h = [h; ih];
+  upper = mean(md)' + 2*std(md)';
+  lower =  mean(md)' - 2*std(md)';
+  plot(lambda, upper , '-', 'Color', colors(im,:), 'LineWidth', 0.5)
+  plot(lambda, lower, '-', 'Color', colors(im,:), 'LineWidth', 0.5)
+  jbfill(lambda, upper', lower', colors(im,:), 'k', 1, .25);
+  plot([0 1], [0 0], 'k')
+end
 legend(h, models)
 
-figure(3), clf, title('Holding time'), hold on, xlabel('\lambda')
-plot(lambda, mean(out.TF.htime)*ones(numel(lambda),1))
+figure(5), clf
+subplot(1,2,1), title('Holding time'), hold on, xlabel('\lambda')
+plot(lambda, mean(out.TF.htime)*ones(numel(lambda),1), 'LineWidth', 1.5)
 h = [];
 for im = 1:numel(models)
   ht = out.(models{im}).htime;
@@ -53,6 +87,21 @@ for im = 1:numel(models)
 end
 legend(h, models)
 
+
+subplot(1,2,2), title('Average daily trade'), hold on, xlabel('\lambda'), ylabel('\sigma')
+plot(lambda, mean(out.TF.avgTrade)*ones(numel(lambda),1), 'LineWidth', 1.5)
+h = [];
+for im = 1:numel(models)
+  ht = out.(models{im}).avgTrade;
+  ih = plot(lambda, mean(ht)', 'Color', colors(im,:), 'LineWidth', 1.5);
+  h = [h; ih];
+  upper = mean(ht)' + 2*std(ht)';
+  lower =  mean(ht)' - 2*std(ht)';
+  plot(lambda, upper , '-', 'Color', colors(im,:))
+  plot(lambda, lower, '-', 'Color', colors(im,:))
+  jbfill(lambda, upper', lower', colors(im,:), 'k', 1, .25);
+end
+legend(h, models)
 
 
 
@@ -119,24 +168,31 @@ hist(sharpe_diff(:),50)
 
 %% Dependence M-Sharpe on YZ
 
+[~, mvInd] = max(mean(out.MV.sharpe));
+[~, rpInd] = max(mean(out.RP.sharpe));
+[~, rpmInd] = max(mean(out.RPmod.sharpe));
+
 figure(9), clf
 subplot(1,2,1), title('MV'), hold on
-scatter(out.yz, out.MV.sharpe(:,6)-out.TF.sharpe, 100, '.')
+scatter(out.yz, out.MV.sharpe(:,mvInd)-out.TF.sharpe, 100, '.')
 xlabel('Yang Zhang \tau'), ylabel('Marginal Sharpe')
 subplot(1,2,2), title('RPmod'), hold on
-scatter(out.yz, out.RPmod.sharpe(:,6)-out.TF.sharpe, 100, '.')
+scatter(out.yz, out.RPmod.sharpe(:,rpmInd)-out.TF.sharpe, 100, '.')
 xlabel('Yang Zhang \tau'), ylabel('Marginal Sharpe')
 
 
 figure(10), clf
 subplot(1,2,1), title('MV'), hold on
-scatter(out.cov_tau, out.MV.sharpe(:,6)-out.TF.sharpe, 100, '.')
+scatter(out.cov_tau, out.MV.sharpe(:,mvInd)-out.TF.sharpe, 100, '.')
 xlabel('Correlation \tau'), ylabel('Marginal Sharpe')
 subplot(1,2,2), title('RPmod'), hold on
-scatter(out.cov_tau, out.RPmod.sharpe(:,6)-out.TF.sharpe, 100, '.')
+scatter(out.cov_tau, out.RPmod.sharpe(:,rpmInd)-out.TF.sharpe, 100, '.')
 xlabel('Correlation \tau'), ylabel('Marginal Sharpe')
 
 %%  When is RPmod better than MV?
+[~, mvInd] = max(mean(out.MV.sharpe));
+[~, rpInd] = max(mean(out.RP.sharpe));
+[~, rpmInd] = max(mean(out.RPmod.sharpe));
 
 binTFdiff = out.RP.sharpe(:,end) - out.TF.sharpe; 
 rpm_mv_diff = out.RPmod.sharpe(:,rpmInd) - out.MV.sharpe(:,mvInd);
@@ -144,6 +200,6 @@ rpm_mv_diff = out.RPmod.sharpe(:,rpmInd) - out.MV.sharpe(:,mvInd);
 
 
 figure(11), clf, hold on, title('When is RPmod better than MV?')
-scatter(binTFdiff, rpm_mv_diff, 100, '.')
+scatter(binTFdiff, rpm_mv_diff, 100, out.yz, '.')
 xlabel('Sharpe difference BinaryTF / TF'), ylabel('Sharpe difference RPmod / MV')
 legend(['Correlation \rho = ', num2str(corr(binTFdiff, rpm_mv_diff))])
