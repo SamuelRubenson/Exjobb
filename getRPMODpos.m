@@ -7,7 +7,7 @@ function [ RPpos ] = getRPMODpos(signals, corrMat, target_volatility, lambda, re
   parfor t = 2:T
     t
     %if mod(t,1000)==0, fprintf('Processing RPmod-model...(%d/%d)\n',t,T); end
-    Q = corrMat(:,:,t) + lambda*eye(N);
+    Q = (1-lambda)*corrMat(:,:,t) + lambda*eye(N);
     activeI = logical(any(Q).*(~isnan(signals(t,:))));
     if ~any(activeI), continue; end
     signal = signals(t,activeI)';
