@@ -39,7 +39,7 @@ store_yz = zeros(nRuns,1);
 store_cov_tau = zeros(nRuns,1);
  
 parfor ip = 1:nRuns
-  yz = 20 + randi(40);
+  yz = 15 + randi(45);
   c_tau = 80 + randi(100);
   
   Config = struct('cost', 0, 'target_volatility', 10, 'riskAdjust', false, 'yz_tau', yz, 'cov_tau', c_tau, 'cov_filter', 'avgEMA');
