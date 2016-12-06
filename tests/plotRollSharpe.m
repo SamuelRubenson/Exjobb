@@ -155,7 +155,7 @@ jbfill(datenum(dates)', upper', ones(numel(dates),1)', 'g');
 xlim([datenum(dates(1)), datenum(dates(end))])
 ylim([0.85,1.1])
 dynamicDateTicks()
-ylabel('Rolling Sharp difference')
+ylabel('Rolling Std ratio')
 title(sprintf('%s vs %s, Rolling %d-year Std ratio. Integral: %.1f',models{4}, models{2}, years, NansumNan(difff - 1)))
 
 
