@@ -2,8 +2,9 @@ colors =[0.8500,    0.3250,    0.0980;
          0.9290,    0.6940,    0.1250;
          0.4940,    0.1840,    0.5560;
          0.4660,    0.6740,    0.1880;];
-lambda = 0:0.1:1;
-models = {'MV', 'RP', 'RPmod'};
+%lambda = 0:0.1:1;
+lambda = [0.4, 0.6, 0.8];
+models = {'MV', 'RP', 'RPmod', 'RPImod'};
 
 figure(1), clf,
 subplot(1,2,1), title('Sharpe'), hold on, xlabel('\lambda')
@@ -203,3 +204,36 @@ figure(11), clf, hold on, title('When is RPmod better than MV?')
 scatter(binTFdiff, rpm_mv_diff, 100, out.yz, '.')
 xlabel('Sharpe difference BinaryTF / TF'), ylabel('Sharpe difference RPmod / MV')
 legend(['Correlation \rho = ', num2str(corr(binTFdiff, rpm_mv_diff))])
+
+%% ------------------------    With RPmod Iterate --------------------------
+%% Surf
+
+figure(12), clf, hold on
+mv = surf(lambda, out.yz, out.MV.sharpe - out.TF.sharpe);
+set(mv, 'Facecolor', colors(1,:), 'Facealpha', 0.8 )
+rpm = surf(lambda, out.yz, out.RPmod.sharpe - out.TF.sharpe);
+set(rpm, 'Facecolor', colors(3,:), 'Facealpha', 0.8 )
+rpim = surf(lambda, out.yz, out.RPImod.sharpe - out.TF.sharpe);
+set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 0.8 )
+xlabel('\lambda'), ylabel('yz_\tau'), zlabel('Marginal Sharpe')
+legend('MV', 'RPmod', 'RPIM')
+
+figure(13), clf,  hold on, title('Average Drawdown')
+mv = surf(lambda, out.yz, out.MV.meanDraw);
+set(mv, 'Facecolor', colors(1,:), 'Facealpha', 0.8 )
+rpm = surf(lambda, out.yz, out.RPmod.meanDraw);
+set(rpm, 'Facecolor', colors(3,:), 'Facealpha', 0.8 )
+rpim = surf(lambda, out.yz, out.RPImod.meanDraw);
+set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 1 )
+xlabel('\lambda'), ylabel('yz_\tau'), zlabel('Annualized \sigma')
+legend('MV', 'RPmod', 'RPIM')
+
+figure(14), clf,  hold on, title('Average daily trade')
+mv = surf(lambda, out.yz, out.MV.avgTrade);
+set(mv, 'Facecolor', colors(1,:), 'Facealpha', 0.8 )
+rpm = surf(lambda, out.yz, out.RPmod.avgTrade);
+set(rpm, 'Facecolor', colors(3,:), 'Facealpha', 0.8 )
+rpim = surf(lambda, out.yz, out.RPImod.avgTrade);
+set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 0.8 )
+xlabel('\lambda'), ylabel('yz_\tau'), zlabel('\sigma')
+legend('MV', 'RPmod', 'RPIM')

@@ -12,7 +12,7 @@ for itau = 1:numel(taus)
   yz = sqrt(yzv([1 1:end-1],:));
   dZ = [nan(1,74) ; diff(lvcf(Close))]./yz;
   mean_var(itau,:) = nanmean(dZ.^2);
-  corrMat_t = estCorrMat(dZ, Config.cov_tau, Config.cov_filter);
+  corrMat_t = estCorrMat(dZ, 100, 'avgEMA');
   Q = cat(3, corrMat_t(:,:,1), corrMat_t(:,:,1:end-1));
   
   tf_pos = getTFpos(dZ, Q, 200, 10, 1);
@@ -37,3 +37,11 @@ yyaxis right
 plot(taus, p_mv(:,2))
 legend('\mu', '\sigma')
 %plot(taus, p_mv(:,1)./p_mv(:,2)*sqrt(252))
+
+%%
+
+figure(3), clf
+subplot(1,2,1), hold on, xlabel('Yang Zhang \tau'), ylabel('\bar{dz^2_i}')
+plot(taus, mean_var)
+subplot(1,2,2)
+plot(taus, mean(mean_var,2)), xlabel('Yang Zhang \tau'), ylabel('\bar{dz^2_i}')
