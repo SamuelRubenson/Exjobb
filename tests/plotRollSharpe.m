@@ -145,7 +145,7 @@ xlim([datenum(dates(1)), datenum(dates(end))])
 ylim([-1.25,1.25])
 dynamicDateTicks()
 ylabel('Rolling Mean difference')
-title(sprintf('%s vs %s, Rolling %d-year Mean',models{4}, models{2}, years))
+title(sprintf('%s vs %s, Rolling %d-year Mean. Integral: %.1f',models{4}, models{2}, years, NansumNan(difff)))
 subplot(2,1,2), box on
 difff = (rollingSTDs(:,4)./rollingSTDs(:,2));
 lower = difff.*(difff<=1); lower(isnan(lower)) = 1; lower(lower==0) = 1;
@@ -155,8 +155,8 @@ jbfill(datenum(dates)', upper', ones(numel(dates),1)', 'g');
 xlim([datenum(dates(1)), datenum(dates(end))])
 ylim([0.85,1.1])
 dynamicDateTicks()
-ylabel('Rolling Sharp difference')
-title(sprintf('%s vs %s, Rolling %d-year Std ratio',models{4}, models{2}, years))
+ylabel('Rolling Std ratio')
+title(sprintf('%s vs %s, Rolling %d-year Std ratio. Integral: %.1f',models{4}, models{2}, years, NansumNan(difff - 1)))
 
 
 
