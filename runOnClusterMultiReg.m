@@ -9,9 +9,10 @@ Close = data.Close;
 High = data.High;
 Low = data.Low;
 
-lambda = 0:0.1:1;
+lambda = 0.1:0.1:0.9;
+yz_taus = 15:60;
 
-TF_ema_Params = struct('aLong', 130, 'aShort', []);
+TF_ema_Params = struct('aLong', 200, 'aShort', []);
 TF = {'TF_ema', TF_ema_Params};
 
 MV_Params = struct('lambda', lambda);
@@ -23,9 +24,9 @@ RP = {'RP', RP_Params};
 RPmod_Params = struct('lambda', lambda, 'regCoeffs', 10^10);
 RPM = {'RPmod', RPmod_Params};
 
-% MVRP_Params = struct('lambda', 0:0.1:2, 'lambdaRP', 0);
-% MVRP = {'MVRP', MVRP_Params};
-nRuns = 1000;
+
+%nRuns = 1000;
+nRuns = numel(yz_taus);
 nL = numel(lambda);
 
 MV_sharpe = zeros(nRuns,nL); RP_sharpe = zeros(nRuns,nL); RPM_sharpe = zeros(nRuns,nL);
@@ -38,9 +39,13 @@ TF_sharpe = zeros(nRuns,1); TF_MD = zeros(nRuns,1); TF_ht = zeros(nRuns,1); TF_a
 store_yz = zeros(nRuns,1);
 store_cov_tau = zeros(nRuns,1);
  
-parfor ip = 1:nRuns
-  yz = 15 + randi(45);
-  c_tau = 80 + randi(100);
+%parfor ip = 1:nRuns
+  %yz = 15 + randi(45);
+  %c_tau = 80 + randi(100);
+
+c_tau = 100;
+parfor ip = 1:numel(yz_taus)
+  yz = yz_taus(ip);
   
   Config = struct('cost', 0, 'target_volatility', 10, 'riskAdjust', false, 'yz_tau', yz, 'cov_tau', c_tau, 'cov_filter', 'avgEMA');
   outCome = evaluatePerformance(Open, High, Low, Close, Config, assetClasses, TF{:}, MV{:}, RP{:}, RPM{:});
@@ -67,7 +72,7 @@ parfor ip = 1:nRuns
   
   store_yz(ip) = yz;
   store_cov_tau(ip) = c_tau;
-  disp('.')
+  %disp('.')
 end
 
 out = struct;
