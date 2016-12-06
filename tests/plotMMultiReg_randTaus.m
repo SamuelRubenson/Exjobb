@@ -207,8 +207,8 @@ legend(['Correlation \rho = ', num2str(corr(binTFdiff, rpm_mv_diff))])
 
 %% ------------------------    With RPmod Iterate --------------------------
 %% Surf
-
-figure(12), clf, hold on
+lambda = [0.4, 0.6, 0.8];
+figure(12), clf, hold on, title('Marginal Sharpe')
 mv = surf(lambda, out.yz, out.MV.sharpe - out.TF.sharpe);
 set(mv, 'Facecolor', colors(1,:), 'Facealpha', 0.8 )
 rpm = surf(lambda, out.yz, out.RPmod.sharpe - out.TF.sharpe);
