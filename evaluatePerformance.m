@@ -46,6 +46,10 @@ if isa(p.Results.MVRP, 'struct')
   runModel('MVRP', p.Results.MVRP)
 end
 
+if isa(p.Results.LES, 'struct')
+  runLES(p.Results.LES)
+end
+
 
 %---------------------------------------------------------------------------
   
@@ -82,7 +86,6 @@ end
           ipos = getRPpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
         case 'RPmod'
           ipos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
-          disp('.')
         case 'MVRP'
           ipos = getMVRPpos( TF_pos, corrMat, assetClasses,  Config.target_volatility, lambda, params.lambdaRP);
       end
@@ -95,6 +98,31 @@ end
   end
 
 %--------------------------------------------------------------------------
+
+
+  function [] = runLES(params)
+    %disp('Processing LES-model...')
+    [Q, L] =  ndgrid(params.lookBack, params.lambda);
+    sharpe=zeros(size(Q)); equityCurve=[]; pos=[]; htime = zeros(size(Q)); rev = []; meanDraw = zeros(size(Q)); meanNorm = zeros(size(Q));
+    sharpe2=zeros(size(Q)); htime2 = zeros(size(Q)); meanDraw2 = zeros(size(Q)); avgTrade = zeros(size(Q)); avgTrade2 = zeros(size(Q));
+    nInstances = numel(Q);
+    for k = 1:nInstances
+      [lookBack, lambda] = deal(Q(k),L(k));
+      %ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
+      [ipos, mNorm, dev] = getTESTpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, params.beta, lambda);
+      [sh, eq, ht, r] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      [sh2, eq2, ht2] = indivitualResults(avgPos(ipos), Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      sharpe(k) = sh; htime(k) = ht;
+      meanDraw(k) = nanmean(eq - cummax(eq));
+      meanNorm(k) = mNorm;
+      sharpe2(k) = sh2; htime2(k) = ht2;
+      meanDraw2(k) = nanmean(eq2 - cummax(eq2));
+      avgTrade(k) = nanmean(NansumNan(abs(diff(ipos)),2));
+      avgTrade2(k) = nanmean(NansumNan(abs(diff(avgPos(ipos))),2));
+      disp('.')
+    end
+    output.Models.LES = struct('avgTrade', avgTrade, 'avgTrade2', avgTrade2, 'meanDraw2', meanDraw2, 'sharpe2', sharpe2, 'htime2', htime2, 'sharpe', sharpe, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'meanDraw', meanDraw, 'meanNorm', meanNorm, 'lambda', params.lambda);%, 'equityCurve', equityCurve, 'pos', ipos, 'rev', r, 'dev', dev);
+  end
 
 end
 
