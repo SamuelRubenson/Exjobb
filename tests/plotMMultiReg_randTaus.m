@@ -207,16 +207,17 @@ legend(['Correlation \rho = ', num2str(corr(binTFdiff, rpm_mv_diff))])
 
 %% ------------------------    With RPmod Iterate --------------------------
 %% Surf
-lambda = [0.4, 0.6, 0.8];
+lambda = 0.1:0.1:0.9;
 figure(12), clf, hold on, title('Marginal Sharpe')
 mv = surf(lambda, out.yz, out.MV.sharpe - out.TF.sharpe);
 set(mv, 'Facecolor', colors(1,:), 'Facealpha', 0.8 )
 rpm = surf(lambda, out.yz, out.RPmod.sharpe - out.TF.sharpe);
 set(rpm, 'Facecolor', colors(3,:), 'Facealpha', 0.8 )
 rpim = surf(lambda, out.yz, out.RPImod.sharpe - out.TF.sharpe);
-set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 0.8 )
+set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 1 )
 xlabel('\lambda'), ylabel('yz_\tau'), zlabel('Marginal Sharpe')
-legend('MV', 'RPmod', 'RPIM')
+xlim([0 1])
+legend('MV', 'RPmod', 'RPmod - SER')
 
 figure(13), clf,  hold on, title('Average Drawdown')
 mv = surf(lambda, out.yz, out.MV.meanDraw);
@@ -226,7 +227,8 @@ set(rpm, 'Facecolor', colors(3,:), 'Facealpha', 0.8 )
 rpim = surf(lambda, out.yz, out.RPImod.meanDraw);
 set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 1 )
 xlabel('\lambda'), ylabel('yz_\tau'), zlabel('Annualized \sigma')
-legend('MV', 'RPmod', 'RPIM')
+xlim([0 1])
+legend('MV', 'RPmod', 'RPmod - SER')
 
 figure(14), clf,  hold on, title('Average daily trade')
 mv = surf(lambda, out.yz, out.MV.avgTrade);
@@ -236,4 +238,5 @@ set(rpm, 'Facecolor', colors(3,:), 'Facealpha', 0.8 )
 rpim = surf(lambda, out.yz, out.RPImod.avgTrade);
 set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 0.8 )
 xlabel('\lambda'), ylabel('yz_\tau'), zlabel('\sigma')
-legend('MV', 'RPmod', 'RPIM')
+xlim([0 1])
+legend('MV', 'RPmod', 'RPmod - SER')

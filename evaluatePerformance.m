@@ -81,7 +81,7 @@ end
         case 'RP'
           ipos = getRPpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
         case 'RPmod'
-          ipos = getRPMIpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
+          ipos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
           disp('.')
         case 'MVRP'
           ipos = getMVRPpos( TF_pos, corrMat, assetClasses,  Config.target_volatility, lambda, params.lambdaRP);
