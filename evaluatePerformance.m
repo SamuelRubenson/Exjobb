@@ -113,7 +113,7 @@ end
       meanDraw2(k) = nanmean(eq2 - cummax(eq2));
       disp('.')
     end
-    output.Models.LES = struct('meanDraw2', meanDraw2, 'sharpe2', sharpe2, 'htime2', htime2, 'sharpe', sharpe, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'meanDraw', meanDraw, 'meanNorm', meanNorm, 'lambda', params.lambda);%, 'equityCurve', eq, 'pos', ipos, 'rev', r, 'dev', dev);
+    output.Models.LES = struct('meanDraw2', meanDraw2, 'sharpe2', sharpe2, 'htime2', htime2, 'sharpe', sharpe, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'meanDraw', meanDraw, 'meanNorm', meanNorm, 'lambda', params.lambda);%, 'equityCurve', equityCurve, 'pos', ipos, 'rev', r, 'dev', dev);
   end
 
 %--------------------------------------------------------------------------

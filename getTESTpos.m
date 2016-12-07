@@ -32,6 +32,8 @@ for i = 1:nAlpha
   c = [c; (1:q)'/q/i];
 end
 
+c = (1-lambda)*(c/sum(c))*100;
+
 %c = repmat((1:q)'/q, nAlpha, 1)/nAlpha;
 %c = ones(nAux,1)/nAux;
 
