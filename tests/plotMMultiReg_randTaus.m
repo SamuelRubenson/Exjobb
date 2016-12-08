@@ -3,8 +3,8 @@ colors =[0.8500,    0.3250,    0.0980;
          0.4940,    0.1840,    0.5560;
          0.4660,    0.6740,    0.1880;];
 %lambda = 0:0.1:1;
-lambda = [0.4, 0.6, 0.8];
-models = {'MV', 'RP', 'RPmod', 'RPImod'};
+lambda = 0.1:0.1:1;
+models = {'MV', 'RP', 'RPmod', 'LES'};
 
 figure(1), clf,
 subplot(1,2,1), title('Sharpe'), hold on, xlabel('\lambda')
@@ -172,16 +172,23 @@ hist(sharpe_diff(:),50)
 [~, mvInd] = max(mean(out.MV.sharpe));
 [~, rpInd] = max(mean(out.RP.sharpe));
 [~, rpmInd] = max(mean(out.RPmod.sharpe));
+[~, lesInd] = max(mean(out.LES.sharpe));
 
 figure(9), clf
-subplot(1,2,1), title('MV'), hold on
+subplot(2,2,1), title('MV'), hold on
 scatter(out.yz, out.MV.sharpe(:,mvInd)-out.TF.sharpe, 100, '.')
 xlabel('Yang Zhang \tau'), ylabel('Marginal Sharpe')
-subplot(1,2,2), title('RPmod'), hold on
+ylim([0 0.3])
+subplot(2,2,2), title('RPmod'), hold on
 scatter(out.yz, out.RPmod.sharpe(:,rpmInd)-out.TF.sharpe, 100, '.')
 xlabel('Yang Zhang \tau'), ylabel('Marginal Sharpe')
+ylim([0 0.3])
+subplot(2,2,3), title('LES'), hold on
+scatter(out.yz, out.LES.sharpe(:,lesInd)-out.TF.sharpe, 100, '.')
+xlabel('Yang Zhang \tau'), ylabel('Marginal Sharpe')
+ylim([0 0.3])
 
-
+%%
 figure(10), clf
 subplot(1,2,1), title('MV'), hold on
 scatter(out.cov_tau, out.MV.sharpe(:,mvInd)-out.TF.sharpe, 100, '.')
@@ -236,6 +243,43 @@ set(mv, 'Facecolor', colors(1,:), 'Facealpha', 0.8 )
 rpm = surf(lambda, out.yz, out.RPmod.avgTrade);
 set(rpm, 'Facecolor', colors(3,:), 'Facealpha', 0.8 )
 rpim = surf(lambda, out.yz, out.RPImod.avgTrade);
+set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 0.8 )
+xlabel('\lambda'), ylabel('yz_\tau'), zlabel('\sigma')
+xlim([0 1])
+legend('MV', 'RPmod', 'RPmod - SER')
+
+%% ------------------------    With LES   --------------------------
+%% Surf
+
+lambda = 0.1:0.1:1;
+figure(12), clf, hold on, title('Marginal Sharpe')
+mv = surf(lambda, out.yz, out.MV.sharpe - out.TF.sharpe);
+set(mv, 'Facecolor', colors(1,:), 'Facealpha', 0.8 )
+rpm = surf(lambda, out.yz, out.RPmod.sharpe - out.TF.sharpe);
+set(rpm, 'Facecolor', colors(3,:), 'Facealpha', 0.8 )
+rpim = surf(lambda, out.yz, out.LES.sharpe - out.TF.sharpe);
+set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 1 )
+xlabel('\lambda'), ylabel('yz_\tau'), zlabel('Marginal Sharpe')
+xlim([0 1])
+legend('MV', 'RPmod', 'RPmod - SER')
+
+figure(13), clf,  hold on, title('Average Drawdown')
+mv = surf(lambda, out.yz, out.MV.meanDraw);
+set(mv, 'Facecolor', colors(1,:), 'Facealpha', 0.8 )
+rpm = surf(lambda, out.yz, out.RPmod.meanDraw);
+set(rpm, 'Facecolor', colors(3,:), 'Facealpha', 0.8 )
+rpim = surf(lambda, out.yz, out.LES.meanDraw);
+set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 1 )
+xlabel('\lambda'), ylabel('yz_\tau'), zlabel('Annualized \sigma')
+xlim([0 1])
+legend('MV', 'RPmod', 'RPmod - SER')
+
+figure(14), clf,  hold on, title('Average daily trade')
+mv = surf(lambda, out.yz, out.MV.avgTrade);
+set(mv, 'Facecolor', colors(1,:), 'Facealpha', 0.8 )
+rpm = surf(lambda, out.yz, out.RPmod.avgTrade);
+set(rpm, 'Facecolor', colors(3,:), 'Facealpha', 0.8 )
+rpim = surf(lambda, out.yz, out.LES.avgTrade);
 set(rpim, 'Facecolor', colors(4,:), 'Facealpha', 0.8 )
 xlabel('\lambda'), ylabel('yz_\tau'), zlabel('\sigma')
 xlim([0 1])

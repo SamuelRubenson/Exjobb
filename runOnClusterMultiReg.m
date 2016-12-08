@@ -66,7 +66,7 @@ parfor ip = 1:numel(yz_taus)
   RP_MD(ip,:) = outCome.Models.RP.meanDraw;
   RPM_MD(ip,:) = outCome.Models.RPmod.meanDraw;
   LES_MD(ip,:) = outCome.Models.LES.meanDraw;
-  LES_MD2(ip,:) = outCome.Models.LES.meanDraw;
+  LES_MD2(ip,:) = outCome.Models.LES.meanDraw2;
   
   TF_ht(ip) = outCome.Models.TF.htime;
   MV_ht(ip,:) = outCome.Models.MV.htime;
