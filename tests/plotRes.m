@@ -67,36 +67,37 @@ ih = surf(LES.lookBack, LES.lambda, outCome.Models.(toComp{i}).sharpe*ones(size(
 set(ih, 'Facecolor', c(i,:), 'Facealpha', 0.5 )
 h = [h;ih];
 end
-l = surf(LES.lookBack, LES.lambda, LES.sharpe');
+l = surf(LES.lookBack, LES.lambda, LES.sharpe2');
 colormap summer
 xlabel('q'), ylabel('\lambda'), zlabel('Annualized Sharpe ratio')
-legend([l;h], [{'LES'}, toComp])
+legend([h;l], [toComp, {'LES'}])
 
 
 figure(21), clf, hold on, title('Average drawdown')
 h = [];
+
 for i = 1:N
 mDraw = nanmean(outCome.Models.(toComp{i}).equityCurve - cummax(outCome.Models.(toComp{i}).equityCurve));
 ih = surf(LES.lookBack, LES.lambda, mDraw*ones(size(LES.meanDraw')));
 set(ih, 'Facecolor', c(i,:), 'Facealpha', 0.5 )
 h = [h;ih];
 end
-l = surf(LES.lookBack, LES.lambda, LES.meanDraw');
+l = surf(LES.lookBack, LES.lambda, LES.meanDraw2');
 colormap summer
 xlabel('q'), ylabel('\lambda'), zlabel('Annualized standard deviations')
-legend([l;h], [{'LES'}, toComp])
+legend([h;l], [toComp, {'LES'}])
 
 figure(22), clf, hold on, title('Holding time')
 h = [];
-for i = 2:N
+for i = 1:N
 ih = surf(LES.lookBack, LES.lambda, outCome.Models.(toComp{i}).htime*ones(size(LES.htime')));
 set(ih, 'Facecolor', c(i,:), 'Facealpha', 0.5 )
 h = [h;ih];
 end
-l = surf(LES.lookBack, LES.lambda, LES.htime');
+l = surf(LES.lookBack, LES.lambda, LES.htime2');
 colormap summer
 xlabel('q'), ylabel('\lambda')
-legend([l;h], [{'LES'}, toComp(2:end)])
+legend([h;l], [toComp, {'LES'}])
 
 
 
