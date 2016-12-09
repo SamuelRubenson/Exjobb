@@ -1,4 +1,4 @@
-function [ output ] = evaluatePerformance(Open, High, Low, Close, Config, assetClasses, varargin)
+function [ output ] = testEVALforCluster(Open, High, Low, Close, Config, assetClasses, varargin)
 p = inputParser;
 p.CaseSensitive = false;
 
@@ -72,15 +72,15 @@ end
   
   function [] = runTF_ema(paramsTF, paramsMV, paramsRP, paramsRPM, paramsLES)
     %disp('Processing TF-model...')
-    nTau = numel(paramsTF.aLong); LESlambda = linspace(5,12,nTau);
+    nTau = numel(paramsTF.aLong);
     TF = struct('sharpe', cell(nTau,1), 'equityCurve', cell(nTau,1), 'pos', cell(nTau,1), 'htime', cell(nTau,1), 'rev', cell(nTau,1), 'tau', cell(nTau,1)); 
-    MV = struct('meanDraw2', cell(nTau,1), 'sharpe2', cell(nTau,1), 'htime2', cell(nTau,1), 'sharpe', cell(nTau,1), 'meanDraw', cell(nTau,1), 'equityCurve', cell(nTau,1), 'pos', cell(nTau,1), 'htime', cell(nTau,1), 'rev', cell(nTau,1));
-    RP = struct('meanDraw2', cell(nTau,1), 'sharpe2', cell(nTau,1), 'htime2', cell(nTau,1), 'sharpe', cell(nTau,1), 'meanDraw', cell(nTau,1), 'equityCurve', cell(nTau,1), 'pos', cell(nTau,1), 'htime', cell(nTau,1), 'rev', cell(nTau,1)); 
-    RPM = struct('meanDraw2', cell(nTau,1), 'sharpe2', cell(nTau,1), 'htime2', cell(nTau,1), 'sharpe', cell(nTau,1), 'meanDraw', cell(nTau,1), 'equityCurve', cell(nTau,1), 'pos', cell(nTau,1), 'htime', cell(nTau,1), 'rev', cell(nTau,1));
-    LES = struct('meanDraw2', cell(nTau,1), 'sharpe2', cell(nTau,1), 'htime2', cell(nTau,1), 'sharpe', cell(nTau,1), 'htime', cell(nTau,1), 'beta', cell(nTau,1), 'lookBack', cell(nTau,1), 'meanDraw', cell(nTau,1), 'meanNorm', cell(nTau,1), 'lambda', cell(nTau,1), 'equityCurve', cell(nTau,1), 'pos', cell(nTau,1), 'rev', cell(nTau,1), 'dev', cell(nTau,1));
+    MV = struct('sharpe', cell(nTau,1), 'meanDraw', cell(nTau,1), 'equityCurve', cell(nTau,1), 'htime', cell(nTau,1), 'lambda', cell(nTau,1));
+    RP = struct('sharpe', cell(nTau,1), 'meanDraw', cell(nTau,1), 'equityCurve', cell(nTau,1), 'htime', cell(nTau,1), 'lambda', cell(nTau,1));
+    RPM = struct('sharpe', cell(nTau,1), 'meanDraw', cell(nTau,1), 'equityCurve', cell(nTau,1), 'htime', cell(nTau,1), 'lambda', cell(nTau,1));
+    LES = struct('meanDraw2', cell(nTau,1), 'sharpe2', cell(nTau,1), 'htime2', cell(nTau,1), 'sharpe', cell(nTau,1), 'htime', cell(nTau,1), 'beta', cell(nTau,1), 'lookBack', cell(nTau,1), 'meanDraw', cell(nTau,1), 'meanNorm', cell(nTau,1), 'lambda', cell(nTau,1), 'equityCurve', cell(nTau,1), 'equityCurve2', cell(nTau,1));
     
     parfor iTau = 1:nTau
-      paramsTF.aLong(iTau)
+      %paramsTF.aLong(iTau)
       [pos, tau] = getTFpos(dZ, corrMat, paramsTF.aLong(iTau), paramsTF.aShort, 10);
       [sharpe, equityCurve, htime, rev] = indivitualResults(pos, 0, Open, Close, sigma_t, false);
       TFres = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'pos', pos, 'htime', htime, 'rev', rev, 'tau', tau);
@@ -88,7 +88,7 @@ end
       MV(iTau) = runModel('MV', paramsMV, pos, corrMat, Config, sigma_t, Open, Close);
       RP(iTau) = runModel('RP', paramsRP, pos, corrMat, Config, sigma_t, Open, Close);
       RPM(iTau) = runModel('RPmod', paramsRPM, pos, corrMat, Config, sigma_t, Open, Close);
-      LES(iTau) = runLES(paramsLES, pos, tau, LESlambda(iTau), dZ, corrMat, Config, sigma_t, Open, Close);
+      LES(iTau) = runLES(paramsLES, pos, dZ, corrMat, Config, sigma_t, Open, Close);
     end
     output.Models.TF = TF;
     output.Models.MV = MV;
@@ -102,33 +102,48 @@ end
 
   function [out] = runModel(model, params, TF_pos, corrMat, Config, sigma_t, Open, Close)
     %fprintf('Processing %s-model...\n',model)
-    switch model
-      case 'MV'
-        pos = getMVpos(TF_pos, corrMat, Config.target_volatility, params.lambda, assetClasses);
-      case 'RP'
-        pos = getRPpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
-      case 'RPmod'
-        pos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
-      case 'MVRP'
-        pos = getMVRPpos(TF_pos, corrMat, assetClasses, Config.target_volatility, params.lambdaMV, params.lambdaRP);
+    sharpe=[]; equityCurve=[]; pos=[]; htime = []; meanDraw = [];
+    for lambda = params.lambda
+      switch model
+        case 'MV'
+          ipos = getMVpos(TF_pos, corrMat, Config.target_volatility, lambda);
+        case 'RP'
+          ipos = getRPpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
+        case 'RPmod'
+          ipos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
+        case 'MVRP'
+          ipos = getMVRPpos( TF_pos, corrMat, assetClasses,  Config.target_volatility, lambda, params.lambdaRP);
+      end
+      [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      MD = nanmean(eq - cummax(eq));
+      meanDraw = [meanDraw; MD];
+      sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; htime = [htime; ht];
     end
-    [sharpe, eq, htime, rev] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    [sharpe2, eq2, htime2] = indivitualResults(avgPos(pos), Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    meanDraw = nanmean(eq - cummax(eq));
-    meanDraw2 = nanmean(eq2 - cummax(eq2));
-    out = struct('meanDraw2', meanDraw2, 'sharpe2', sharpe2, 'htime2', htime2, 'sharpe', sharpe, 'meanDraw', meanDraw, 'equityCurve', eq, 'pos', pos, 'htime', htime, 'rev', rev);
+    out = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'meanDraw', meanDraw, 'htime', htime, 'lambda', params.lambda);
   end
 
 
-  function [out] = runLES(params, TF_pos, tau, testLambda, dZ, corrMat, Config, sigma_t, Open, Close)
-    %disp('Processing LES-model...')
-    %ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
-    [pos, meanNorm, dev] = getTESTpos(dZ, TF_pos, corrMat, params.lookBack, Config.target_volatility, tau, testLambda);
-    [sharpe, eq, htime, r] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    [sharpe2, eq2, htime2] = indivitualResults(avgPos(pos), Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    meanDraw = nanmean(eq - cummax(eq));
-    meanDraw2 = nanmean(eq2 - cummax(eq2));
-    out = struct('meanDraw2', meanDraw2, 'sharpe2', sharpe2, 'htime2', htime2, 'sharpe', sharpe, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'meanDraw', meanDraw, 'meanNorm', meanNorm, 'lambda', params.lambda, 'equityCurve', eq, 'pos', pos, 'rev', r, 'dev', dev);
+  function [out] = runLES(params, TF_pos, dZ, corrMat, Config, sigma_t, Open, Close)
+    [Q, L] =  ndgrid(params.lookBack, params.lambda);
+    sharpe=zeros(size(Q)); equityCurve=[]; equityCurve2=[]; pos=[]; htime = zeros(size(Q)); rev = []; meanDraw = zeros(size(Q)); meanNorm = zeros(size(Q));
+    sharpe2=zeros(size(Q)); htime2 = zeros(size(Q)); meanDraw2 = zeros(size(Q));
+    nInstances = numel(Q);
+    for k = 1:nInstances
+      [lookBack, lambda] = deal(Q(k),L(k));
+      %ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
+      [ipos, mNorm, dev] = getTESTpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, 0, lambda);
+      [sh, eq, ht, r] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      [sh2, eq2, ht2] = indivitualResults(avgPos(ipos), Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      sharpe(k) = sh; htime(k) = ht;
+      meanDraw(k) = nanmean(eq - cummax(eq));
+      meanNorm(k) = mNorm;
+      sharpe2(k) = sh2; htime2(k) = ht2;
+      meanDraw2(k) = nanmean(eq2 - cummax(eq2));
+      equityCurve = [equityCurve, eq(:)];
+      equityCurve2 = [equityCurve2, eq2(:)];
+      disp('.')
+    end
+    out = struct('meanDraw2', meanDraw2', 'sharpe2', sharpe2', 'htime2', htime2', 'sharpe', sharpe', 'htime', htime', 'beta', params.beta, 'lookBack', params.lookBack, 'meanDraw', meanDraw', 'meanNorm', meanNorm', 'lambda', params.lambda, 'equityCurve', equityCurve, 'equityCurve2', equityCurve2);%, 'pos', ipos, 'rev', r, 'dev', dev);
   end
 
 %--------------------------------------------------------------------------

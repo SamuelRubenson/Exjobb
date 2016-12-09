@@ -81,7 +81,7 @@ end
       MV = [MV; runModel('MV', paramsMV, pos)];
       RP = [RP; runModel('RP', paramsRP, pos)];
       RPM = [RPM; runModel('RPmod', paramsRPM, pos)];
-      LES = [LES; runLES(paramsLES, pos, tau, LESlambda(iTau))];
+      LES = [LES; runLES(paramsLES, pos, tau)];
     end
     output.Models.TF = TF;
     output.Models.MV = MV;
@@ -91,36 +91,51 @@ end
   end
 
 %---------------------------------------------------------------------------
-
+  
   function [out] = runModel(model, params, TF_pos)
-    %fprintf('Processing %s-model...\n',model)
-    switch model
-      case 'MV'
-        pos = getMVpos(TF_pos, corrMat, Config.target_volatility, params.lambda, assetClasses);
-      case 'RP'
-        pos = getRPpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
-      case 'RPmod'
-        pos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, params.lambda, params.regCoeffs);
-      case 'MVRP'
-        pos = getMVRPpos(TF_pos, corrMat, assetClasses, Config.target_volatility, params.lambdaMV, params.lambdaRP);
+    fprintf('Processing %s-model...\n',model)
+    sharpe=[]; equityCurve=[]; pos=[]; htime = []; meanDraw = [];
+    for lambda = params.lambda
+      switch model
+        case 'MV'
+          ipos = getMVpos(TF_pos, corrMat, Config.target_volatility, lambda);
+        case 'RP'
+          ipos = getRPpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
+        case 'RPmod'
+          ipos = getRPMODpos(TF_pos, corrMat, Config.target_volatility, lambda, params.regCoeffs);
+        case 'MVRP'
+          ipos = getMVRPpos( TF_pos, corrMat, assetClasses,  Config.target_volatility, lambda, params.lambdaRP);
+      end
+      [sh, eq, ht] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      MD = nanmean(eq - cummax(eq));
+      meanDraw = [meanDraw; MD];
+      sharpe = [sharpe; sh]; equityCurve = [equityCurve, eq(:)]; htime = [htime; ht];
     end
-    [sharpe, eq, htime, rev] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    [sharpe2, eq2, htime2] = indivitualResults(avgPos(pos), Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    meanDraw = nanmean(eq - cummax(eq));
-    meanDraw2 = nanmean(eq2 - cummax(eq2));
-    out = struct('meanDraw2', meanDraw2, 'sharpe2', sharpe2, 'htime2', htime2, 'sharpe', sharpe, 'meanDraw', meanDraw, 'equityCurve', eq, 'pos', pos, 'htime', htime, 'rev', rev);
+    out = struct('sharpe', sharpe, 'equityCurve', equityCurve, 'meanDraw', meanDraw, 'htime', htime, 'lambda', params.lambda);
   end
 
 
-  function [out] = runLES(params, TF_pos, tau, testLambda)
+  function [out] = runLES(params, TF_pos, tau)
     %disp('Processing LES-model...')
-    %ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
-    [pos, meanNorm, dev] = getTESTpos(dZ, TF_pos, corrMat, params.lookBack, Config.target_volatility, tau, testLambda);
-    [sharpe, eq, htime, r] = indivitualResults(pos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    [sharpe2, eq2, htime2] = indivitualResults(avgPos(pos), Config.cost, Open, Close, sigma_t, Config.riskAdjust);
-    meanDraw = nanmean(eq - cummax(eq));
-    meanDraw2 = nanmean(eq2 - cummax(eq2));
-    out = struct('meanDraw2', meanDraw2, 'sharpe2', sharpe2, 'htime2', htime2, 'sharpe', sharpe, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'meanDraw', meanDraw, 'meanNorm', meanNorm, 'lambda', params.lambda, 'equityCurve', eq, 'pos', pos, 'rev', r, 'dev', dev);
+    [Q, L] =  ndgrid(params.lookBack, params.lambda);
+    sharpe=zeros(size(Q)); equityCurve=[]; equityCurve2=[]; pos=[]; htime = zeros(size(Q)); rev = []; meanDraw = zeros(size(Q)); meanNorm = zeros(size(Q));
+    sharpe2=zeros(size(Q)); htime2 = zeros(size(Q)); meanDraw2 = zeros(size(Q));
+    nInstances = numel(Q);
+    for k = 1:nInstances
+      [lookBack, lambda] = deal(Q(k),L(k));
+      %ipos = getLESpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, beta);
+      [ipos, mNorm, dev] = getTESTpos(dZ, TF_pos, corrMat, lookBack, Config.target_volatility, tau, lambda);
+      [sh, eq, ht, r] = indivitualResults(ipos, Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      [sh2, eq2, ht2] = indivitualResults(avgPos(ipos), Config.cost, Open, Close, sigma_t, Config.riskAdjust);
+      sharpe(k) = sh; htime(k) = ht;
+      meanDraw(k) = nanmean(eq - cummax(eq));
+      meanNorm(k) = mNorm;
+      sharpe2(k) = sh2; htime2(k) = ht2;
+      meanDraw2(k) = nanmean(eq2 - cummax(eq2));
+      equityCurve = [equityCurve, eq(:)];
+      equityCurve2 = [equityCurve2, eq2(:)];
+    end
+    out = struct('meanDraw2', meanDraw2, 'sharpe2', sharpe2, 'htime2', htime2, 'sharpe', sharpe, 'htime', htime, 'beta', params.beta, 'lookBack', params.lookBack, 'meanDraw', meanDraw, 'meanNorm', meanNorm, 'lambda', params.lambda, 'equityCurve', equityCurve, 'equityCurve2', equityCurve2);%, 'pos', ipos, 'rev', r, 'dev', dev);
   end
 
 %--------------------------------------------------------------------------

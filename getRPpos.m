@@ -19,7 +19,7 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda, regCo
       mod_signal = ((Q(activeI,activeI) + iReg*eye(n))/(iReg+1))\signal;
       adjusted_corrMat = adjustForSigns(Q(activeI,activeI),sign(mod_signal(:)));
       w_t = rpADMM(adjusted_corrMat, target_volatility);
-      checkSolution(w_t, adjusted_corrMat)
+      %checkSolution(w_t, adjusted_corrMat)
       scaled_signed_wt = (w_t(:)'/norm(w_t)).*(sign(mod_signal(:)'));
       W = [W; scaled_signed_wt]; factor = [factor; norm(w_t)];
     end
@@ -47,7 +47,7 @@ function [ RPpos ] = getRPpos(signals, corrMat, target_volatility, lambda, regCo
   end
 
   function[regQ] = addToDiag(Q, lambda)
-    regQ = Q + lambda*diag(diag(Q));
+    regQ = (1-lambda)*Q + lambda*diag(diag(Q));
   end
 
 end

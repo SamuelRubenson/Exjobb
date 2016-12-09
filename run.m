@@ -11,21 +11,21 @@ load assetClasses
 load 160830
 dates = datetime(Date,'ConvertFrom','datenum');
 
-Config = struct('cost', 0, 'target_volatility', 10, 'riskAdjust', false, 'yz_tau', 60, 'cov_tau', 100, 'cov_filter', 'EMA');
+Config = struct('cost', 0, 'target_volatility', 10, 'riskAdjust', false, 'yz_tau', 30, 'cov_tau', 100, 'cov_filter', 'avgEMA');
 
-TF_ema_Params = struct('aLong', 20:10:400, 'aShort', 10);
+TF_ema_Params = struct('aLong', 40:50:300, 'aShort', 10);
 TF = {'TF_ema', TF_ema_Params};
 
-MV_Params = struct('lambda', 0.5);
+MV_Params = struct('lambda', 0.7);
 MV = {'MV', MV_Params};
 
-RP_Params = struct('lambda', 0.5, 'regCoeffs', 10^10);
+RP_Params = struct('lambda', 0.6, 'regCoeffs', 10^10);
 RP = {'RP', RP_Params};
 
-RPmod_Params = struct('lambda', 0.5, 'regCoeffs', 10^10);
+RPmod_Params = struct('lambda', 0.4, 'regCoeffs', 10^10);
 RPM = {'RPmod', RPmod_Params};
 
-LES_Params = struct('lookBack', 290, 'beta', -0.5, 'lambda', 8);
+LES_Params = struct('lookBack', 290, 'beta', -0.5, 'lambda', 0.7);
 LES = {'LES', LES_Params};
 
 RPLES_Params = struct;

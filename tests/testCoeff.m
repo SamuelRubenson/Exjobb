@@ -10,9 +10,9 @@ figure(20), plot([y1/max(y1) y2/max(y2) y3/max(y3), flip((1:q)'/q) ])
 %figure(21), plot([y5 (y4+y5)/2 y4])
 %% TEST TF filter on retunrs!!
 
-q = 500;
+q = 10000;
 x = [1; zeros(q-1,1)];
-a = 1-1/100; a2 = 1-1/10;
+a = 1-1/40; a2 = 1-1/10;
 y1 = filter(1-a,[1, -a],x); y2 = filter(1-a2,[1, -a2],x);
 y3 = cumsum(y2)-cumsum(y1); y3 = y3/sum(y3);
 sum((1:q)'.*y3)

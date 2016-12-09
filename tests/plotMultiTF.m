@@ -44,10 +44,20 @@ for it = 1:nTau
 end
 plot(tau, TFcorrs)
 title('Equitycurve-Correlation with trend follower'), xlabel('\tau'), ylabel('\rho'), box on
+%%
+
+figure(1), clf
+subplot(1,2,1), hold on
+vals = (cat(2, outCome.Models.TF.sharpe));
+plot(tau,vals)
+vals = (cat(2, outCome.Models.LES.sharpe));
+plot(tau,vals)
+subplot(1,2,2)
+plot(tau, TFcorrs(:,end))
 
 %% Check before / after correlation
 models = fieldnames(outCome.Models);
-X = [1, 15, 39];
+X = [1:6];
 store = [];
 for i = 1:numel(models)
 test = cat(2,outCome.Models.(models{i}).equityCurve);
@@ -57,3 +67,60 @@ c = corr(test2,'rows','complete');
 store = [store; mean( mean( c(~eye(size(test2,2))) ) )];
 end
 figure(), bar(store)
+
+%% With several reg
+
+colors =[0.8500,    0.3250,    0.0980;
+         0.9290,    0.6940,    0.1250;
+         0.4940,    0.1840,    0.5560;
+         0.4660,    0.6740,    0.1880;];
+
+models = fieldnames(outCome.Models);
+
+figure(1), clf, hold on,
+tau = cat(2,outCome.Models.TF.tau);
+lambda = outCome.Models.MV(1).lambda(1:end);
+TF_sharpe = cat(2, outCome.Models.TF.sharpe);
+
+for iM = [1:4]
+  sh = cat(2,outCome.Models.(models{iM}).sharpe);
+  plot(tau, max(sh,[],1))
+  %h = surf(tau, lambda, sh(1:end,:));
+  %set(h, 'FaceColor', colors(iM-1,:), 'FaceAlpha', 1);
+end
+%sh = cat(1,outCome.Models.LES.sharpe)';
+%h = surf(tau, lambda, sh(1:end-1,:));
+%set(h, 'FaceColor', colors(4,:), 'FaceAlpha', 1);
+legend(models([2, 4]))
+
+%%
+
+%% Check before / after correlation
+models = fieldnames(outCome.Models);
+X = [1:3:14]; mInd = [7, 6, 4, 9];
+all = [];
+for il = 1:10
+store = [];
+tf_eq = cat(2,outCome.Models.TF.equityCurve); 
+test = diff(tf_eq,1);
+test2 = test(:, X);
+c = corr(test2,'rows','complete');
+store = [store; mean( mean( c(~eye(size(test2,2))) ) )];
+for i = 2:numel(models)
+test = cat(3,outCome.Models.(models{i}).equityCurve);
+test = diff(test,1);
+test2 = test(:, :, X);
+c = corr(squeeze(test2(:,il,:)),'rows','complete');
+store = [store; mean( mean( c(~eye(size(test2,3))) ) )];
+end
+all = [all, store];
+end
+
+figure(), plot(0.1:0.1:1', all)
+
+
+
+
+
+
+

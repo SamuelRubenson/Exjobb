@@ -18,7 +18,7 @@ constr = nan(T,1);
 
 
 q = lookBack;
-q = floor(1.5*tau);
+%q = floor(1.5*tau);
 C = 1;
 
 %alpha = [-0.5, -0.2, 0.1];
@@ -32,6 +32,8 @@ for i = 1:nAlpha
   bb( (i-1)*q + 1 : i*q ) = ones(q,1)*alpha(i);
   c = [c; (1:q)'/q/i];
 end
+
+c = (1-lambda)*(c/sum(c))*100;
 
 %c = repmat((1:q)'/q, nAlpha, 1)/nAlpha;
 %c = ones(nAux,1)/nAux;

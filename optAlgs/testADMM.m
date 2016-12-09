@@ -42,7 +42,7 @@ function [w] = testADMM(Y,c, signal, alpha, lambda)
     z = z_new; u = u_new;
   end
   w = x_new;
-  if nIter == maxIter, disp('LES max iter hit'); end
+  %if nIter == maxIter, disp('LES max iter hit'); end
   
   function [rho, u_new] = updateRho(s,r,rho,u_new)
     if r/s > mult
